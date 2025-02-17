@@ -217,6 +217,94 @@
 
 ;; TODO: add adding lines above and below cursor
 
+(defun kel-yank ()
+  "yank selections"
+  (interactive)
+  (kill-ring-save 0 0 (region-bounds)))
+
+(defun kel-paste-after ()
+  "paste after the end of each selection"
+  (interactive)
+  (when (> (region-end) (point))
+    (exchange-point-and-mark))
+  (yank))
+
+(defun kel-paste-before ()
+  "paste before the beginning of each selection"
+  (interactive)
+  (when (<= (region-end) (point))
+    (exchange-point-and-mark))
+  (yank))
+
+;; TODO: use multiple cursors to implement paste all and end and start
+
+(defun kel-replace-selection ()
+  "replace selections with yanked text"
+  (interactive)
+  (kel-delete-util)
+  (yank))
+
+;; TODO: implement replace selections with every yanked text
+
+(defun kel-replace-character (char)
+  "replace each character with the next entered one"
+  (interactive "\ncenter char to replace with")
+  (delete-char)
+  (insert char))
+
+(defun kel-join-lines ()
+  "join selected lines"
+  (interactive)
+  (join-line 1))
+
+;; TODO: figure out how to use this one
+(defun kel-join-lines-with-spaces ()
+  "join selected lines and select spaces inserted in place of line breaks"
+  (interactive)
+  (query-replace-regexp "\n" " "))
+
+;; TODO figure out what merge contiguous selections together means
+
+;; TODO add duplicate each selection, merge overlapping selections
+
+(defun kel-indent-selection ()
+  "indent selected lines"
+  (interactive)
+  (kel-indent (if (equal current-prefix-arg nil) 1 current-prefix-arg)))
+
+;; TODO: indent selected lines, including empty lines
+
+(defun kel-unindent-selection ()
+  "unindent selected lines"
+  (interactive)
+  (kel-unindent (if (equal current-prefix-arg nil) 1 current-prefix-arg)))
+
+;; TODO: unindent selected lines, don't remove incomplete indents
+
+;; TODO: implement undo, redo, moving in history with undo-fu
+
+;; TODO: figure out how to save selection changes with multiple cursors
+
+;; TODO: figure out how to align selections with multiple cursors.
+
+(defun kel-to-lower-case ()
+  "to lower case"
+  (interactive)
+  (kel-lowercase))
+
+(defun kel-to-upper-case ()
+  "to upper case"
+  (interactive)
+  (kel-uppercase))
+
+;; TODO: figure out how to swap casing
+
+;; TODO: convert tabs to spaces and vice versa using a variable or count
+
+;; TODO: unselect whitespace from multiple cursors
+
+;; TODO: rotate selections content, which includes count
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; STATE TOGGLE
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

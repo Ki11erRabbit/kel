@@ -151,6 +151,36 @@ Ignores CHAR at point."
   (goto-char (- (point) 1))))
 
 
+(defun kel-indent (count)
+  "TODO: make work with multiple cursors"
+  (if (use-region-p)
+      (progn (indent-rigidly (region-beginning) (region-end) 2)
+             (setq deactivate-mark nil))
+    (let ((beg (save-excursion (beginning-of-line) (point)))
+          (end (save-excursion (forward-line count) (point))))
+      (indent-rigidly beg end 2))))
+
+(defun kel-unindent (count)
+  "TODO: make work with multiple cursors"
+  (if (use-region-p)
+      (progn (indent-rigidly (region-beginning) (region-end) -2)
+             (setq deactivate-mark nil))
+    (let ((beg (save-excursion (beginning-of-line) (point)))
+          (end (save-excursion (forward-line count) (point))))
+      (indent-rigidly beg end -2))))
+
+
+
+(defun kel-lowercase ()
+  (if (use-region-p)
+      (downcase-region (region-beginning) (region-end))
+    (downcase-region (point) (+ 1 (point)))))
+
+(defun kel-uppercase ()
+  (if (use-region-p)
+      (upcase-region (region-beginning) (region-end))
+    (upcase-region (point) (1+ (point)))))
+
 ;; Modes
 
 (defvar kel-normal-mode)
