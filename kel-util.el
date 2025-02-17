@@ -35,6 +35,55 @@
 (require 'kel-vars)
 (require 'kel-keymap)
 
+;;
+
+(defun kel-set-mark-if-inactive ()
+  (interactive)
+  (unless (use-region-p) (set-mark (point))))
+
+(defun kel-set-mark-here ()
+  (interactive)
+  (set-mark (point)))
+
+(defun kel-deactivate-mark ()
+  (interactive)
+  (deactivate-mark))
+
+(defvar kel-last-t-or-f ?f
+  "Using t or f command sets this variable.")
+
+(defvar-local kel-last-char-selected-to " "
+  "This variable is updated by kel-select-to-char.")
+
+(defun kel-select-up-to-char-util (arg char)
+  "Select up to, but not including ARGth occurrence of CHAR.
+Case is ignored if `case-fold-search' is non-nil in the current buffer.
+Goes backward if ARG is negative; error if CHAR not found.
+Ignores CHAR at point."
+  (interactive "p\ncSelect up to char: ")
+  (setq kel-last-char-selected-to char)
+  (setq kakoune-last-t-or-f ?t)
+  (let ((direction (if (>= arg 0) 1 -1)))
+    (forward-char direction)
+    (unwind-protect
+	    (search-forward (char-to-string char) nil nil arg)
+	  (backward-char direction))
+    (point)))
+
+(defun kel-select-to-char-util (arg char)
+  "Select up to, and including ARGth occurrence of CHAR.
+Case is ignored if `case-fold-search' is non-nil in the current buffer.
+Goes backward if ARG is negative; error if CHAR not found.
+Ignores CHAR at point."
+  (interactive "p\ncSelect to char: ")
+  (setq kel-last-char-select-to char)
+  (setq kel-last-t-or-f ?f)
+  (let ((direction (if (>= arg 0) 1 -1)))
+    (forward-char direction)
+    (unwind-protect
+        (search-forward (char-to-string char) nil nil arg))
+    (point)))
+
 ;; Modes
 
 (defvar kel-normal-mode)
@@ -121,6 +170,14 @@ Looks up the state in kel-replace-state-name-list"
 (defun kel--on-exit ()
   (unless (display-graphic-p)
     (send-string-to-terminal "\e[2 q")))
+
+
+
+(defun kel--minibuffer-setup ()
+  (local-set-key (kbd "<escape>") #'kel-minibuffer-quit)
+  (setq-local kel-normal-mode nil)
+  )
+
 
 
 (defun kel--init-buffers ()

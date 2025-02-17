@@ -37,6 +37,116 @@
 (require 'array)
 
 
+;; Movement
+
+(defun kel-backward-char ()
+  "Move to the left."
+  (kel-deactivate-mark)
+  (interactive)
+  (backward-char))
+
+(defun kel-select-backward-char ()
+  "Move to the left and select."
+  (kel-set-mark-if-inactive)
+  (interactive)
+  (backward-char))
+
+(defun kel-forward-char ()
+  "Move to the right."
+  (kel-deactivate-mark)
+  (interactive)
+  (forward-char))
+
+(defun kel-select-forward-char ()
+  "Move to the right and select."
+  (interactive)
+  (kel-set-mark-if-inactive)
+  (forward-char))
+
+(defun kel-previous-line ()
+  "Move up."
+  (interactive)
+  (kel-deactivate-mark)
+  (previous-line))
+
+(defun kel-select-previous-line ()
+  "Move up and select."
+  (interactive)
+  (kel-set-mark-if-inactive)
+  (previous-line))
+
+(defun kel-next-line ()
+  "Move down."
+  (interactive)
+  (kel-deactivate-mark)
+  (next-line))
+
+(defun kel-select-next-line ()
+  "Move down and select."
+  (interactive)
+  (kel-set-mark-if-inactive)
+  (next-line))
+
+(defun kel-forward-word ()
+  "Select the word and following whitespace on the right of the end of each selection"
+  (interactive)
+  (kel-set-mark-here)
+  (forward-word))
+
+(defun kel-select-forward-word ()
+  "Select the word and following whitespace on the right of the end of each selection"
+  (interactive)
+  (kel-set-mark-if-inactive)
+  (forward-word))
+
+(defun kel-backward-word ()
+  "select preceding whitespaces and the word on the left of the end of each selection"
+  (interactive)
+  (kel-set-mark-here)
+  (backward-word))
+
+(defun kel-select-backward-word ()
+  "select preceding whitespaces and the word on the left of the end of each selection"
+  (interactive)
+  (kel-set-mark-if-inactive)
+  (backward-word))
+
+
+(defun kel-forward-symbol ()
+  "select preceding whitespaces and the word on the right of the end of each selection"
+  (interactive)
+  (kel-set-mark-here)
+  (forward-symbol))
+
+(defun kel-select-forward-symbol ()
+  "select preceding whitespaces and the word on the right of the end of each selection"
+  (interactive)
+  (kel-set-mark-if-inactive)
+  (forward-symbol))
+
+(defun kel-to-char (arg char)
+  "select to the next occurrence of given character"
+  (interactive "p\ncSelect to char: ")
+  (kel-set-mark-here)
+  (kel-select-to-char-util arg char))
+
+(defun kel-select-to-char (arg char)
+  "select to the next occurrence of given character"
+  (interactive "p\ncSelect to char: ")
+  (kel-set-mark-if-inactive)
+  (kel-select-to-char-util))
+
+(defun kel-up-to-char (arg char)
+  "select until the next occurrence of given character"
+  (interactive "p\ncSelect up to char: ")
+  (kel-set-mark-here)
+  (kel-select-up-to-char-util))
+
+(defun kel-select-up-to-char (arg char)
+  "select until the next occurrence of given character"
+  (interactive "p\ncSelect up to char: ")
+  (kel-set-mark-if-inactive)
+  (kel-select-up-to-char-util))
 
 
 
