@@ -62,6 +62,8 @@
     (define-key keymap (kbd "F") 'kel-select-to-char)
     (define-key keymap (kbd "t") 'kel-up-to-char)
     (define-key keymap (kbd "T") 'kel-select-up-to-char)
+    (define-key keymap (kbd "x") 'kel-line)
+    (define-key keymap (kbd "X") 'kel-select-line)
     (define-key keymap [remap kmacro-end-or-call-macro] #'kel-end-or-call-kmacro)
     (define-key keymap [remap kmacro-end-macro] #'kel-end-kmacro)
     keymap)

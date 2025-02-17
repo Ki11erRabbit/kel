@@ -148,7 +148,13 @@
   (kel-set-mark-if-inactive)
   (kel-select-up-to-char-util))
 
+(defun kel-line ()
+  (interactive)
+  (kel-line-util))
 
+(defun kel-select-line ()
+  (interactive)
+  (kel-line-util))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; STATE TOGGLE

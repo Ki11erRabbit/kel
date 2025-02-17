@@ -84,6 +84,21 @@ Ignores CHAR at point."
         (search-forward (char-to-string char) nil nil arg))
     (point)))
 
+
+(defun kel-line-util ()
+  "Select the current line."
+  (interactive)
+  (let ((regions-end (region-end)))
+  (if (use-region-p)
+      (exchange-point-and-mark)
+    nil)
+  (beginning-of-line)
+  (set-mark (point))
+  (goto-char regions-end)
+  (forward-line)
+  (goto-char (- (point) 1))))
+
+
 ;; Modes
 
 (defvar kel-normal-mode)
