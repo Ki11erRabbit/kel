@@ -49,28 +49,75 @@
   (interactive)
   (deactivate-mark))
 
+(defun kel-forward-word-util (count)
+  (interactive)
+  (forward-word count)
+  (backward-word)
+  (kel-set-mark-if-inactive)
+  (forward-word))
+
+(defun kel-backward-word-util (count)
+  (interactive)
+  (backward-word count)
+  (forward-word)
+  (kel-set-mark-if-inactive)
+  (backward-word))
+
+(defun kel-scroll-down-half-page ()
+  "scroll down half a page while keeping the cursor centered"
+  (interactive)
+  (let ((ln (line-number-at-pos (point)))
+    (lmax (line-number-at-pos (point-max))))
+    (cond ((= ln 1) (move-to-window-line nil))
+      ((= ln lmax) (recenter (window-end)))
+      (t (progn
+           (move-to-window-line -1)
+           (recenter))))))
+
+(defun kel-scroll-up-half-page ()
+  "scroll up half a page while keeping the cursor centered"
+  (interactive)
+  (let ((ln (line-number-at-pos (point)))
+    (lmax (line-number-at-pos (point-max))))
+    (cond ((= ln 1) nil)
+      ((= ln lmax) (move-to-window-line nil))
+      (t (progn
+           (move-to-window-line 0)
+           (recenter))))))
+
+(defun kel-flip-selection-util ()
+  (exchange-point-and-mark))
+
+(defun kel-make-selection-forward-util ()
+  (let ((regions-end (region-end)))
+    (when (> regions-end (point))
+      (kel-set-mark-here)
+      (exchange-point-and-mark)
+      (goto-char regions-end))))
+        
+      
+
 (defvar kel-last-t-or-f ?f
   "Using t or f command sets this variable.")
 
 (defvar-local kel-last-char-selected-to " "
   "This variable is updated by kel-select-to-char.")
 
-(defun kel-select-up-to-char-util (arg char)
+(defun kel-select-up-to-char-util (count char)
   "Select up to, but not including ARGth occurrence of CHAR.
 Case is ignored if `case-fold-search' is non-nil in the current buffer.
 Goes backward if ARG is negative; error if CHAR not found.
 Ignores CHAR at point."
-  (interactive "p\ncSelect up to char: ")
   (setq kel-last-char-selected-to char)
   (setq kakoune-last-t-or-f ?t)
   (let ((direction (if (>= arg 0) 1 -1)))
     (forward-char direction)
     (unwind-protect
-	    (search-forward (char-to-string char) nil nil arg)
+	    (search-forward (char-to-string char) nil nil count)
 	  (backward-char direction))
     (point)))
 
-(defun kel-select-to-char-util (arg char)
+(defun kel-select-to-char-util (count char)
   "Select up to, and including ARGth occurrence of CHAR.
 Case is ignored if `case-fold-search' is non-nil in the current buffer.
 Goes backward if ARG is negative; error if CHAR not found.
@@ -81,7 +128,7 @@ Ignores CHAR at point."
   (let ((direction (if (>= arg 0) 1 -1)))
     (forward-char direction)
     (unwind-protect
-        (search-forward (char-to-string char) nil nil arg))
+        (search-forward (char-to-string char) nil nil count))
     (point)))
 
 

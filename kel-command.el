@@ -90,26 +90,24 @@
 (defun kel-forward-word ()
   "Select the word and following whitespace on the right of the end of each selection"
   (interactive)
-  (kel-set-mark-here)
-  (forward-word (if (equal current-prefix-arg nil) 1 current-prefix-arg)))
+  (kel-deactivate-mark)
+  (kel-forward-word-util (if (equal current-prefix-arg nil) 1 current-prefix-arg)))
 
 (defun kel-select-forward-word ()
   "Select the word and following whitespace on the right of the end of each selection"
   (interactive)
-  (kel-set-mark-if-inactive)
-  (forward-word (if (equal current-prefix-arg nil) 1 current-prefix-arg)))
+  (kel-forward-word-util (if (equal current-prefix-arg nil) 1 current-prefix-arg)))
 
 (defun kel-backward-word ()
   "select preceding whitespaces and the word on the left of the end of each selection"
   (interactive)
-  (kel-set-mark-here)
-  (backward-word (if (equal current-prefix-arg nil) 1 current-prefix-arg)))
+  (kel-deactivate-mark)
+  (kel-backward-word-util (if (equal current-prefix-arg nil) 1 current-prefix-arg)))
 
 (defun kel-select-backward-word ()
   "select preceding whitespaces and the word on the left of the end of each selection"
   (interactive)
-  (kel-set-mark-if-inactive)
-  (backward-word (if (equal current-prefix-arg nil) 1 current-prefix-arg)))
+  (kel-backward-word-util (if (equal current-prefix-arg nil) 1 current-prefix-arg)))
 
 
 (defun kel-forward-symbol ()
@@ -127,7 +125,7 @@
 (defun kel-to-char (arg char)
   "select to the next occurrence of given character"
   (interactive "p\ncSelect to char: ")
-  (kel-set-mark-here)
+  (kel-deactivate-mark)
   (kel-select-to-char-util arg char))
 
 (defun kel-select-to-char (arg char)
@@ -139,14 +137,14 @@
 (defun kel-up-to-char (arg char)
   "select until the next occurrence of given character"
   (interactive "p\ncSelect up to char: ")
-  (kel-set-mark-here)
-  (kel-select-up-to-char-util))
+  (kel-deactivate-mark)
+  (kel-select-up-to-char-util (if (equal current-prefix-arg nil) 1 current-prefix-arg) char))
 
 (defun kel-select-up-to-char (arg char)
   "select until the next occurrence of given character"
   (interactive "p\ncSelect up to char: ")
   (kel-set-mark-if-inactive)
-  (kel-select-up-to-char-util))
+  (kel-select-up-to-char-util (if (equal current-prefix-arg nil) 1 current-prefix-arg) char))
 
 (defun kel-line ()
   (interactive)
@@ -155,6 +153,56 @@
 (defun kel-select-line ()
   (interactive)
   (kel-line-util))
+
+(defun kel-select-buffer ()
+  (interactive)
+  (mark-whole-buffer))
+
+(defun kel-select-to-line-begin ()
+  (interactive)
+  (kel-set-mark-here)
+  (beginning-of-line))
+
+(defun kel-select-to-line-end ()
+  (interactive)
+  (kel-set-mark-here)
+  (end-of-line))
+
+(defun kel-page-up ()
+  (interactive)
+  (kel-deactivate-mark)
+  (scroll-up-command (if (equal current-prefix-arg nil) 1 current-prefix-arg)))
+
+(defun kel-page-down ()
+  (interactive)
+  (kel-deactivate-mark)
+  (scroll-down-command (if (equal current-prefix-arg nil) 1 current-prefix-arg)))
+
+(defun kel-half-page-up ()
+  (interactive)
+  (kel-deactivate-mark)
+  (kel-scroll-up-half-page))
+
+(defun kel-half-page-down ()
+  (interactive)
+  (kel-deactivate-mark)
+  (kel-scroll-down-half-page))
+
+(defun kel-reduce-selection ()
+  "reduce selections to their cursor"
+  (interactive)
+  (kel-deactivate-mark))
+
+(defun kel-flip-selection ()
+  "flip the direction of each selection"
+  (interactive)
+  (kel-flip-selection-util))
+
+(defun kel-make-selection-forward ()
+  "ensure selections are in forward direction (cursor after anchor)"
+  (interactive)
+  (kel-make-selection-forward-util))
+                                   
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; STATE TOGGLE
