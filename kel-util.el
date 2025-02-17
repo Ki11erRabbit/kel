@@ -94,8 +94,13 @@
       (kel-set-mark-here)
       (exchange-point-and-mark)
       (goto-char regions-end))))
-        
-      
+
+(defun kel-yank-and-delete-util ()
+  (kill-region))
+
+(defun kel-delete-util ()
+  (delete-region))
+
 
 (defvar kel-last-t-or-f ?f
   "Using t or f command sets this variable.")

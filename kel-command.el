@@ -30,6 +30,8 @@
 (require 'cl-lib)
 (require 'subr-x)
 (require 'seq)
+(require 'simple)
+(require 'electric)
 
 (require 'kel-vars)
 (require 'kel-util)
@@ -202,7 +204,18 @@
   "ensure selections are in forward direction (cursor after anchor)"
   (interactive)
   (kel-make-selection-forward-util))
-                                   
+
+(defun kel-yank-and-delete ()
+  "yank and delete selections"
+  (interactive)
+  (kel-yank-and-delete-util))
+
+(defun kel-delete ()
+  "delete selections (not yanking)"
+  (interactive)
+  (kel-delete-util))
+
+;; TODO: add adding lines above and below cursor
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; STATE TOGGLE
@@ -216,14 +229,62 @@
     (kel--switch-state 'normal))))
 
 
-(defun kel-insert ()
-  "Move to the start of selection, switch to INSERT state."
+(defun kel-insert-before ()
+  "enter insert mode before selections"
   (interactive)
-    ;(meow--direction-backward)
-    ;(meow--cancel-selection)
   (kel--switch-state 'insert)
-  (when kel-select-on-insert
-    (setq-local kel--insert-pos (point))))
+  (when (<= (region-end) (point))
+      (exchange-point-and-mark)))
+  
+(defun kel-insert-after ()
+  "enter insert mode after selections"
+  (interactive)
+  (kel--switch-state 'insert)
+  (when (> (region-end) (point))
+      (exchange-point-and-mark)))
+
+(defun kel-insert-yank-and-delete ()
+  "yank and delete selections and enter insert mode"
+  (interactive)
+  (kel-yank-and-delete-util)
+  (kel--switch-state 'insert))
+  
+(defun kel-insert-delete ()
+  "yank and delete selections and enter insert mode"
+  (interactive)
+  (kel-delete-util)
+  (kel--switch-state 'insert))
+
+(defun kel-insert-line-start ()
+  "enter insert mode at the beginning of the lines containing the start of each selection"
+  (interactive)
+  (when (<= (region-end) (point)) (exchange-point-and-mark))
+  (back-to-indentation)
+  (kel--switch-state 'insert))
+
+(defun kel-insert-line-end ()
+  "enter insert mode at the end of the lines containing the end of each selection"
+  (interactive)
+  (when (>= (region-end) (point)) (exchange-point-and-mark))
+  (move-end-of-line)
+  (kel--switch-state 'insert))
+
+(defun kel-insert-new-line-below ()
+  "enter insert mode in a new line (or in a given count of new lines) below the end of each selection"
+  (interactive)
+  (end-of-line)
+  (dotimes (_ (if (equal current-prefix-arg nil) 1 current-prefix-arg))
+    (electric-newline-and-maybe-indent))
+  (kel--switch-state 'insert))
+  
+(defun kel-insert-new-line-above ()
+  "enter insert mode in a new line (or in a given count of new lines) above the beginning of each selection"
+  (interactive)
+  (beginning-of-line)
+  (dotimes (_ (if (equal current-prefix-arg nil) 1 current-prefix-arg))
+    (newline)
+    (forward-line -1))
+  (kel--switch-state 'insert))
 
 (provide 'kel-command)
 ;;; kel-command.el ends here
