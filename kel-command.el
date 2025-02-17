@@ -246,11 +246,12 @@
 
 ;; TODO: implement replace selections with every yanked text
 
-(defun kel-replace-character (char)
+(defun kel-replace-character (arg char)
   "replace each character with the next entered one"
-  (interactive "\ncenter char to replace with")
-  (delete-char)
-  (insert char))
+  (interactive "p\ncenter char to replace with")
+  (delete-char 1)
+  (insert char)
+  (backward-char))
 
 (defun kel-join-lines ()
   "join selected lines"
