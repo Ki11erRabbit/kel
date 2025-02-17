@@ -41,88 +41,88 @@
 
 (defun kel-backward-char ()
   "Move to the left."
-  (kel-deactivate-mark)
   (interactive)
-  (backward-char))
+  (kel-deactivate-mark)
+  (backward-char (if (equal current-prefix-arg nil) 1 current-prefix-arg)))
 
 (defun kel-select-backward-char ()
   "Move to the left and select."
-  (kel-set-mark-if-inactive)
   (interactive)
-  (backward-char))
+  (kel-set-mark-if-inactive)
+  (backward-char (if (equal current-prefix-arg nil) 1 current-prefix-arg)))
 
 (defun kel-forward-char ()
   "Move to the right."
-  (kel-deactivate-mark)
   (interactive)
-  (forward-char))
+  (kel-deactivate-mark)
+  (forward-char (if (equal current-prefix-arg nil) 1 current-prefix-arg)))
 
 (defun kel-select-forward-char ()
   "Move to the right and select."
   (interactive)
   (kel-set-mark-if-inactive)
-  (forward-char))
+  (forward-char (if (equal current-prefix-arg nil) 1 current-prefix-arg)))
 
 (defun kel-previous-line ()
   "Move up."
   (interactive)
   (kel-deactivate-mark)
-  (previous-line))
+  (previous-line (if (equal current-prefix-arg nil) 1 current-prefix-arg)))
 
 (defun kel-select-previous-line ()
   "Move up and select."
   (interactive)
   (kel-set-mark-if-inactive)
-  (previous-line))
+  (previous-line (if (equal current-prefix-arg nil) 1 current-prefix-arg)))
 
 (defun kel-next-line ()
   "Move down."
   (interactive)
   (kel-deactivate-mark)
-  (next-line))
+  (next-line (if (equal current-prefix-arg nil) 1 current-prefix-arg)))
 
 (defun kel-select-next-line ()
   "Move down and select."
   (interactive)
   (kel-set-mark-if-inactive)
-  (next-line))
+  (next-line (if (equal current-prefix-arg nil) 1 current-prefix-arg)))
 
 (defun kel-forward-word ()
   "Select the word and following whitespace on the right of the end of each selection"
   (interactive)
   (kel-set-mark-here)
-  (forward-word))
+  (forward-word (if (equal current-prefix-arg nil) 1 current-prefix-arg)))
 
 (defun kel-select-forward-word ()
   "Select the word and following whitespace on the right of the end of each selection"
   (interactive)
   (kel-set-mark-if-inactive)
-  (forward-word))
+  (forward-word (if (equal current-prefix-arg nil) 1 current-prefix-arg)))
 
 (defun kel-backward-word ()
   "select preceding whitespaces and the word on the left of the end of each selection"
   (interactive)
   (kel-set-mark-here)
-  (backward-word))
+  (backward-word (if (equal current-prefix-arg nil) 1 current-prefix-arg)))
 
 (defun kel-select-backward-word ()
   "select preceding whitespaces and the word on the left of the end of each selection"
   (interactive)
   (kel-set-mark-if-inactive)
-  (backward-word))
+  (backward-word (if (equal current-prefix-arg nil) 1 current-prefix-arg)))
 
 
 (defun kel-forward-symbol ()
   "select preceding whitespaces and the word on the right of the end of each selection"
   (interactive)
   (kel-set-mark-here)
-  (forward-symbol))
+  (forward-symbol (if (equal current-prefix-arg nil) 1 current-prefix-arg)))
 
 (defun kel-select-forward-symbol ()
   "select preceding whitespaces and the word on the right of the end of each selection"
   (interactive)
   (kel-set-mark-if-inactive)
-  (forward-symbol))
+  (forward-symbol (if (equal current-prefix-arg nil) 1 current-prefix-arg)))
 
 (defun kel-to-char (arg char)
   "select to the next occurrence of given character"
