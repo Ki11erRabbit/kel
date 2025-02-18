@@ -148,6 +148,31 @@
   (kel-set-mark-if-inactive)
   (kel-select-up-to-char-util (if (equal current-prefix-arg nil) 1 current-prefix-arg) char))
 
+
+(defun kel-to-char-reverse (arg char)
+  "select to the previous occurrence of given character"
+  (interactive "p\ncSelect to char: ")
+  (kel-deactivate-mark)
+  (kel-select-to-char-reverse-util arg char))
+
+(defun kel-select-to-char-reverse (arg char)
+  "select to the previous occurrence of given character"
+  (interactive "p\ncSelect to char: ")
+  (kel-set-mark-if-inactive)
+  (kel-select-to-char-reverse-util))
+
+(defun kel-up-to-char-reverse (arg char)
+  "select until the previous occurrence of given character"
+  (interactive "p\ncSelect up to char: ")
+  (kel-deactivate-mark)
+  (kel-select-up-to-char-reverse-util (if (equal current-prefix-arg nil) 1 current-prefix-arg) char))
+
+(defun kel-select-up-to-char-reverse (arg char)
+  "select until the previous occurrence of given character"
+  (interactive "p\ncSelect up to char: ")
+  (kel-set-mark-if-inactive)
+  (kel-select-up-to-char-reverse-util (if (equal current-prefix-arg nil) 1 current-prefix-arg) char))
+
 (defun kel-line ()
   (interactive)
   (kel-line-util))

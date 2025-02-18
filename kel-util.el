@@ -127,13 +127,40 @@ Ignores CHAR at point."
 Case is ignored if `case-fold-search' is non-nil in the current buffer.
 Goes backward if ARG is negative; error if CHAR not found.
 Ignores CHAR at point."
-  (interactive "p\ncSelect to char: ")
   (setq kel-last-char-select-to char)
   (setq kel-last-t-or-f ?f)
   (let ((direction (if (>= arg 0) 1 -1)))
     (forward-char direction)
     (unwind-protect
         (search-forward (char-to-string char) nil nil count))
+    (point)))
+
+
+(defun kel-select-up-to-char-reverse-util (count char)
+  "Select up to, but not including ARGth occurrence of CHAR.
+Case is ignored if `case-fold-search' is non-nil in the current buffer.
+Goes backward if ARG is negative; error if CHAR not found.
+Ignores CHAR at point."
+  (setq kel-last-char-selected-to char)
+  (setq kakoune-last-t-or-f ?t)
+  (let ((direction (if (>= arg 0) 1 -1)))
+    (forward-char direction)
+    (unwind-protect
+	    (search-backward (char-to-string char) nil nil count)
+	  (forward-char direction))
+    (point)))
+
+(defun kel-select-to-char-reverse-util (count char)
+  "Select up to, and including ARGth occurrence of CHAR.
+Case is ignored if `case-fold-search' is non-nil in the current buffer.
+Goes backward if ARG is negative; error if CHAR not found.
+Ignores CHAR at point."
+  (setq kel-last-char-select-to char)
+  (setq kel-last-t-or-f ?f)
+  (let ((direction (if (>= arg 0) 1 -1)))
+    (forward-char direction)
+    (unwind-protect
+        (search-backward (char-to-string char) nil nil count))
     (point)))
 
 
