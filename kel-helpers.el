@@ -1,4 +1,4 @@
-;;; kel-helpers.el --- Helpers -*- lexical-binding t -*-
+;;; kel-helpers.el --- Helpers -*- lexical-binding: t; -*-
 ;; Author Alec Davis <unlikelytitan at gmail.com>
 ;; Maintainter Alec Davis <unlikelytitan at gmail.com>
 

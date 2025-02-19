@@ -1,4 +1,4 @@
-;;; kel-util.el --- Utilities -*- lexical-binding t -*-
+;;; kel-util.el --- Utilities -*- lexical-binding: t; -*-
 ;; Author Alec Davis <unlikelytitan at gmail.com>
 ;; Maintainter Alec Davis <unlikelytitan at gmail.com>
 
@@ -115,7 +115,7 @@ Goes backward if ARG is negative; error if CHAR not found.
 Ignores CHAR at point."
   (setq kel-last-char-selected-to char)
   (setq kakoune-last-t-or-f ?t)
-  (let ((direction (if (>= arg 0) 1 -1)))
+  (let ((direction (if (>= count 0) 1 -1)))
     (forward-char direction)
     (unwind-protect
 	    (search-forward (char-to-string char) nil nil count)
@@ -129,7 +129,7 @@ Goes backward if ARG is negative; error if CHAR not found.
 Ignores CHAR at point."
   (setq kel-last-char-select-to char)
   (setq kel-last-t-or-f ?f)
-  (let ((direction (if (>= arg 0) 1 -1)))
+  (let ((direction (if (>= count 0) 1 -1)))
     (forward-char direction)
     (unwind-protect
         (search-forward (char-to-string char) nil nil count))
@@ -143,7 +143,7 @@ Goes backward if ARG is negative; error if CHAR not found.
 Ignores CHAR at point."
   (setq kel-last-char-selected-to char)
   (setq kakoune-last-t-or-f ?t)
-  (let ((direction (if (>= arg 0) 1 -1)))
+  (let ((direction (if (>= count 0) 1 -1)))
     (forward-char direction)
     (unwind-protect
 	    (search-backward (char-to-string char) nil nil count)
@@ -157,7 +157,7 @@ Goes backward if ARG is negative; error if CHAR not found.
 Ignores CHAR at point."
   (setq kel-last-char-select-to char)
   (setq kel-last-t-or-f ?f)
-  (let ((direction (if (>= arg 0) 1 -1)))
+  (let ((direction (if (>= count 0) 1 -1)))
     (forward-char direction)
     (unwind-protect
         (search-backward (char-to-string char) nil nil count))
@@ -170,10 +170,37 @@ Ignores CHAR at point."
         (location nil)
         (index 1)
         (direction-mod (if (= (car (cdr pair)) 1) (lambda (x y) (+ x y)) (lambda (x y) (- x y))))
+        (fetch-char (if (= (car (cdr pair)) 1) (lambda (x) (char-after x)) (lambda (x) (char-before x)))))
+    (if (= (car (cdr pair)) 1) (set-mark (point)) (set-mark (+ (point) 1)))
+    (setq location (kel-get-closing-pair char))
+    (when location
+      (if (= (car (cdr pair)) 1) (goto-char location) (goto-char (- location 1))))
+    (unless location
+      (message "no selections remaining"))))
+
+(defun kel-match-closing-pair (char)
+  "finds a matching pair character from the kel-matching-pairs variable"
+  (let* ((pair (kel-get-matching-pair char))
+        (location nil)
+        (index 1)
+        (direction-mod (if (= (car (cdr pair)) 1) (lambda (x y) (+ x y)) (lambda (x y) (- x y))))
+        (fetch-char (if (= (car (cdr pair)) 1) (lambda (x) (char-after x)) (lambda (x) (char-before x)))))
+    (unless (use-region-p) (if (= (car (cdr pair)) 1) (set-mark (point)) (set-mark (+ (point) 1))))
+    (setq location (kel-get-closing-pair char))
+    (when location
+      (if (= (car (cdr pair)) 1) (goto-char location) (goto-char (- location 1))))
+    (unless location
+      (message "no selections remaining"))))
+
+(defun kel-get-closing-pair (char)
+  "finds a matching pair character from the kel-matching-pairs variable"
+  (let* ((pair (kel-get-matching-pair char))
+        (location nil)
+        (index 1)
+        (direction-mod (if (= (car (cdr pair)) 1) (lambda (x y) (+ x y)) (lambda (x y) (- x y))))
         (fetch-char (if (= (car (cdr pair)) 1) (lambda (x) (char-after x)) (lambda (x) (char-before x))))
         (matching-pair (car pair))
         (stack '()))
-    (if (= (car (cdr pair)) 1) (set-mark (point)) (set-mark (+ (point) 1)))
     (while (and (not location) (and (<= (funcall direction-mod (point) index) (buffer-size)) (>= (funcall direction-mod (point) index) 0)))
       (if (eq (funcall fetch-char (funcall direction-mod (point) index)) matching-pair)
           (if (> (length stack) 0)
@@ -182,11 +209,7 @@ Ignores CHAR at point."
         (when (eq (funcall fetch-char (funcall direction-mod (point) index)) char)
           (setq stack (cons 1 stack))))
       (setq index (+ index 1)))
-    (when location
-      (if (= (car (cdr pair)) 1) (goto-char location) (goto-char (- location 1))))
-    (unless location
-      (message "no selections remaining"))))
-
+    location))
 
 (defun kel-line-util ()
   "Select the current line."

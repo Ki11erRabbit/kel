@@ -1,4 +1,4 @@
-;;; kel-core.el --- Core functionality -*- lexical-binding t -*-
+;;; kel-core.el --- Core functionality -*- lexical-binding: t; -*-
 ;; Author Alec Davis <unlikelytitan at gmail.com>
 ;; Maintainter Alec Davis <unlikelytitan at gmail.com>
 

@@ -1,4 +1,4 @@
-;;; kel.el --- Kakoune Emulation Layer -*- lexical-binding t -*-
+;;; kel.el --- Kakoune Emulation Layer -*- lexical-binding: t; -*-
 ;; Author Alec Davis <unlikelytitan at gmail.com>
 ;; Maintainter Alec Davis <unlikelytitan at gmail.com>
 

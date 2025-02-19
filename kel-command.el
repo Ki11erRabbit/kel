@@ -1,4 +1,4 @@
-;;; kel-command.el --- Commands -*- lexical-binding t -*-
+;;; kel-command.el --- Commands -*- lexical-binding: t; -*-
 ;; Author Alec Davis <unlikelytitan at gmail.com>
 ;; Maintainter Alec Davis <unlikelytitan at gmail.com>
 
@@ -124,53 +124,65 @@
   (kel-set-mark-if-inactive)
   (forward-symbol (if (equal current-prefix-arg nil) 1 current-prefix-arg)))
 
-(defun kel-to-char (arg char)
+(defun kel-to-char (arg char &optional count)
   "select to the next occurrence of given character"
   (interactive "p\ncSelect to char: ")
-  (kel-deactivate-mark)
-  (kel-select-to-char-util arg char))
+  (kel-set-mark-here)
+  (kel-select-to-char-util (if count count (if (equal current-prefix-arg nil) 1 current-prefix-arg)) char)
+  (kel-set-normal-last-selection-command (lambda () (kel-to-char arg char (if (equal current-prefix-arg nil) 1 current-prefix-arg)))))
 
-(defun kel-select-to-char (arg char)
+(defun kel-select-to-char (arg char &optional count)
   "select to the next occurrence of given character"
   (interactive "p\ncSelect to char: ")
   (kel-set-mark-if-inactive)
-  (kel-select-to-char-util))
+  (kel-select-to-char-util (if count count (if (equal current-prefix-arg nil) 1 current-prefix-arg)) char)
+  (kel-set-normal-last-selection-command (lambda () (kel-select-to-char arg char (if (equal current-prefix-arg nil) 1 current-prefix-arg)))))
 
-(defun kel-up-to-char (arg char)
+(defun kel-up-to-char (arg char &optional count)
   "select until the next occurrence of given character"
   (interactive "p\ncSelect up to char: ")
-  (kel-deactivate-mark)
-  (kel-select-up-to-char-util (if (equal current-prefix-arg nil) 1 current-prefix-arg) char))
+  (kel-set-mark-here)
+  (kel-select-up-to-char-util (if count count (if (equal current-prefix-arg nil) 1 current-prefix-arg)) char)
+  (kel-set-normal-last-selection-command (lambda () (kel-up-to-char arg char (if (equal current-prefix-arg nil) 1 current-prefix-arg)))))
 
-(defun kel-select-up-to-char (arg char)
+(defun kel-select-up-to-char (arg char &optional count)
   "select until the next occurrence of given character"
   (interactive "p\ncSelect up to char: ")
   (kel-set-mark-if-inactive)
-  (kel-select-up-to-char-util (if (equal current-prefix-arg nil) 1 current-prefix-arg) char))
+  (kel-select-up-to-char-util (if count count (if (equal current-prefix-arg nil) 1 current-prefix-arg)) char)
+  (kel-set-normal-last-selection-command (lambda () (kel-select-up-to-char arg char (if (equal current-prefix-arg nil) 1 current-prefix-arg)))))
 
-(defun kel-to-char-reverse (arg char)
+(defun kel-to-char-reverse (arg char &optional count)
   "select to the previous occurrence of given character"
   (interactive "p\ncSelect to char: ")
-  (kel-deactivate-mark)
-  (kel-select-to-char-reverse-util arg char))
+  (kel-set-mark-here)
+  (kel-select-to-char-reverse-util (if count count (if (equal current-prefix-arg nil) 1 current-prefix-arg)) char)
+  (kel-set-normal-last-selection-command (lambda () (kel-to-char-reverse arg char (if (equal current-prefix-arg nil) 1 current-prefix-arg)))))
 
-(defun kel-select-to-char-reverse (arg char)
+(defun kel-select-to-char-reverse (arg char &optional count)
   "select to the previous occurrence of given character"
   (interactive "p\ncSelect to char: ")
   (kel-set-mark-if-inactive)
-  (kel-select-to-char-reverse-util))
+  (kel-select-to-char-reverse-util (if count count (if (equal current-prefix-arg nil) 1 current-prefix-arg)) char)
+  (kel-set-normal-last-selection-command (lambda () (kel-select-to-char-reverse arg char (if (equal current-prefix-arg nil) 1 current-prefix-arg)))))
 
-(defun kel-up-to-char-reverse (arg char)
+(defun kel-up-to-char-reverse (arg char &optional count)
   "select until the previous occurrence of given character"
   (interactive "p\ncSelect up to char: ")
-  (kel-deactivate-mark)
-  (kel-select-up-to-char-reverse-util (if (equal current-prefix-arg nil) 1 current-prefix-arg) char))
+  (kel-set-mark-here)
+  (kel-select-up-to-char-reverse-util (if count count (if (equal current-prefix-arg nil) 1 current-prefix-arg)) char)
+  (kel-set-normal-last-selection-command (lambda () (kel-up-to-char-reverse arg char (if (equal current-prefix-arg nil) 1 current-prefix-arg)))))
 
-(defun kel-select-up-to-char-reverse (arg char)
+(defun kel-select-up-to-char-reverse (arg char &optional count)
   "select until the previous occurrence of given character"
   (interactive "p\ncSelect up to char: ")
   (kel-set-mark-if-inactive)
-  (kel-select-up-to-char-reverse-util (if (equal current-prefix-arg nil) 1 current-prefix-arg) char))
+  (kel-select-up-to-char-reverse-util (if count count (if (equal current-prefix-arg nil) 1 current-prefix-arg)) char)
+  (kel-set-normal-last-selection-command (lambda () (kel-select-up-to-char-reverse arg char (if (equal current-prefix-arg nil) 1 current-prefix-arg)))))
+
+(defun kel-last-object-or-char-selection ()
+  (interactive)
+  (funcall (kel-get-normal-last-selection-command)))
 
 (defun kel-select-next-matching-pair ()
   "select to the next sequence enclosed by matching characters"
@@ -180,7 +192,7 @@
 (defun kel-extend-next-matching-pair ()
   "select to the next sequence enclosed by matching characters"
   (interactive)
-  (kel-select-closing-pair (char-after (point))))
+  (kel-match-closing-pair (char-after (point))))
 
 (defun kel-line ()
   (interactive)

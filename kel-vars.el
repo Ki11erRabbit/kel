@@ -1,4 +1,4 @@
-;;; kel-vars.el --- Variables -*- lexical-binding t -*-
+;;; kel-vars.el --- Variables -*- lexical-binding: t; -*-
 ;; Author Alec Davis <unlikelytitan at gmail.com>
 ;; Maintainter Alec Davis <unlikelytitan at gmail.com>
 
@@ -90,12 +90,24 @@ The init-state can be any state, including custom ones."
                 :value-type (pair :tag "match and direction")))
 
 (defun kel-get-matching-pair (char)
-  (nth 1(alist-get char kel-matching-pairs)))
+  (nth 1 (alist-get char kel-matching-pairs)))
+
 
 ;;; Internal variables
 
 (defvar-local kel--current-state 'normal
   "A symbol represent current state.")
+
+(defvar-local kel--normal-last-selection-command (lambda () (interactive) nil)
+  "The last selection action. Either object or f/t")
+
+(defun kel-set-normal-last-selection-command (func)
+  (setq kel--normal-last-selection-command func))
+
+(defun kel-get-normal-last-selection-command ()
+  kel--normal-last-selection-command)
+
+;; TODO: make a var that stores everything done in insert mode that comes from i, a, and c
 
 (provide 'kel-vars)
 ;;; kel-vars.el ends here
