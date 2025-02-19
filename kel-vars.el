@@ -107,6 +107,14 @@ The init-state can be any state, including custom ones."
 (defun kel-get-normal-last-selection-command ()
   kel--normal-last-selection-command)
 
+(defvar-local kel--insert-last-input ""
+  "This variable records everything from insert mode including actions from c")
+
+(defun kel-append-insert-last-input (value)
+  (setq kel--insert-last-input (concat kel--insert-last-input value)))
+
+(defun kel-reset-insert-last-input ()
+  (setq kel--insert-last-input ""))
 ;; TODO: make a var that stores everything done in insert mode that comes from i, a, and c
 
 (provide 'kel-vars)
