@@ -73,6 +73,8 @@
     (define-key keymap (kbd "M-F") 'kel-select-to-char-reverse)
     (define-key keymap (kbd "M-t") 'kel-up-to-char-reverse)
     (define-key keymap (kbd "M-T") 'kel-select-up-to-char-reverse)
+    (define-key keymap (kbd "m") 'kel-select-next-matching-pair)
+    (define-key keymap (kbd "M") 'kel-extend-next-matching-pair)
     (define-key keymap (kbd "x") 'kel-line)
     (define-key keymap (kbd "X") 'kel-select-line)
     (define-key keymap (kbd "M-h") 'kel-select-to-line-begin)

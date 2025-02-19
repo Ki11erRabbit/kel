@@ -164,6 +164,30 @@ Ignores CHAR at point."
     (point)))
 
 
+(defun kel-select-closing-pair (char)
+  "finds a matching pair character from the kel-matching-pairs variable"
+  (let* ((pair (kel-get-matching-pair char))
+        (location nil)
+        (index 1)
+        (direction-mod (if (= (car (cdr pair)) 1) (lambda (x y) (+ x y)) (lambda (x y) (- x y))))
+        (fetch-char (if (= (car (cdr pair)) 1) (lambda (x) (char-after x)) (lambda (x) (char-before x))))
+        (matching-pair (car pair))
+        (stack '()))
+    (if (= (car (cdr pair)) 1) (set-mark (point)) (set-mark (+ (point) 1)))
+    (while (and (not location) (and (<= (funcall direction-mod (point) index) (buffer-size)) (>= (funcall direction-mod (point) index) 0)))
+      (if (eq (funcall fetch-char (funcall direction-mod (point) index)) matching-pair)
+          (if (> (length stack) 0)
+              (setq stack (cdr stack))
+            (setq location (funcall direction-mod (point) index)))
+        (when (eq (funcall fetch-char (funcall direction-mod (point) index)) char)
+          (setq stack (cons 1 stack))))
+      (setq index (+ index 1)))
+    (when location
+      (if (= (car (cdr pair)) 1) (goto-char location) (goto-char (- location 1))))
+    (unless location
+      (message "no selections remaining"))))
+
+
 (defun kel-line-util ()
   "Select the current line."
   (interactive)

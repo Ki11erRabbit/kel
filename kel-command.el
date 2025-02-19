@@ -148,7 +148,6 @@
   (kel-set-mark-if-inactive)
   (kel-select-up-to-char-util (if (equal current-prefix-arg nil) 1 current-prefix-arg) char))
 
-
 (defun kel-to-char-reverse (arg char)
   "select to the previous occurrence of given character"
   (interactive "p\ncSelect to char: ")
@@ -172,6 +171,16 @@
   (interactive "p\ncSelect up to char: ")
   (kel-set-mark-if-inactive)
   (kel-select-up-to-char-reverse-util (if (equal current-prefix-arg nil) 1 current-prefix-arg) char))
+
+(defun kel-select-next-matching-pair ()
+  "select to the next sequence enclosed by matching characters"
+  (interactive)
+  (kel-select-closing-pair (char-after (point))))
+
+(defun kel-extend-next-matching-pair ()
+  "select to the next sequence enclosed by matching characters"
+  (interactive)
+  (kel-select-closing-pair (char-after (point))))
 
 (defun kel-line ()
   (interactive)

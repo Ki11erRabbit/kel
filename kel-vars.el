@@ -75,6 +75,23 @@ The init-state can be any state, including custom ones."
                 :value-type (string :tag "Indicator")))
 
 
+(defcustom kel-matching-pairs
+  '((?\( . '(?\) 1))
+    (?\) . '(?\( -1))
+    (?{ . '(?} 1))
+    (?} . '(?{ -1))
+    (?\[ . '(?\] 1))
+    (?\] . '(?\[ -1))
+    (?< . '(?> 1))
+    (?> . '(?< -1)))
+  "A list of codepoints that are to be treated as matching pairs for the m command."
+  :group 'kel
+  :type '(alist :key-type (char :tag "kel pair")
+                :value-type (pair :tag "match and direction")))
+
+(defun kel-get-matching-pair (char)
+  (nth 1(alist-get char kel-matching-pairs)))
+
 ;;; Internal variables
 
 (defvar-local kel--current-state 'normal
