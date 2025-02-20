@@ -109,6 +109,7 @@
     (define-key keymap (kbd "M-;") 'kel-flip-selection)
     (define-key keymap (kbd "M-:") 'kel-make-selection-forward)
     (define-key keymap (kbd "d") 'kel-yank-and-delete)
+    (define-key keymap (kbd ".") 'kel-last-insert-mode-change)
     (define-key keymap (kbd "M-d") 'kel-delete)
     (define-key keymap (kbd "y") 'kel-yank)
     (define-key keymap (kbd "p") 'kel-paste-after)

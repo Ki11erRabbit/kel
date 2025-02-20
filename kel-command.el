@@ -35,6 +35,7 @@
 
 (require 'kel-vars)
 (require 'kel-util)
+(require 'kel-hooks)
 ;(require 'kel-visual)
 (require 'array)
 
@@ -256,6 +257,12 @@
   (interactive)
   (kel-yank-and-delete-util))
 
+(defun kel-last-insert-mode-change ()
+  "repeat last insert mode change (i, a, or c, including the inserted text)"
+  (interactive)
+  (kel-last-insert-mode-change-util))
+
+
 (defun kel-delete ()
   "delete selections (not yanking)"
   (interactive)
@@ -356,9 +363,21 @@
 ;;; STATE TOGGLE
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+
+
+;;; Insert Mode
+
+(defun kel-attach-post-command-hook ()
+  (add-hook 'post-command-hook #'kel-insert-post-command-hook))
+
+(defun kel-detach-post-command-hook ()
+  (remove-hook 'post-command-hook #'kel-insert-post-command-hook))
+
 (defun kel-insert-exit ()
   "Switch to NORMAL state."
   (interactive)
+  (kel-detach-post-command-hook)
+  (message (format "%s" (kel-get-last-insert-commands)))
   (cond
    ((kel-insert-mode-p)
     (kel--switch-state 'normal))))
@@ -367,13 +386,17 @@
 (defun kel-insert-before ()
   "enter insert mode before selections"
   (interactive)
+  (kel-reset-last-insert-commands)
   (kel--switch-state 'insert)
+  (kel-attach-post-command-hook)
   (when (<= (region-end) (point))
       (exchange-point-and-mark)))
   
 (defun kel-insert-after ()
   "enter insert mode after selections"
   (interactive)
+  (kel-reset-last-insert-commands)
+  (kel-attach-post-command-hook)
   (kel--switch-state 'insert)
   (when (> (region-end) (point))
       (exchange-point-and-mark)))
@@ -381,45 +404,59 @@
 (defun kel-insert-yank-and-delete ()
   "yank and delete selections and enter insert mode"
   (interactive)
+  (kel-reset-last-insert-commands)
+  (kel-add-insert-command 'delete-selection)
   (kel-yank-and-delete-util)
-  (kel--switch-state 'insert))
+  (kel--switch-state 'insert)
+  (kel-attach-post-command-hook))
   
 (defun kel-insert-delete ()
   "yank and delete selections and enter insert mode"
   (interactive)
+  (kel-reset-last-insert-commands)
+  (kel-add-insert-command 'delete-selection)
   (kel-delete-util)
-  (kel--switch-state 'insert))
+  (kel--switch-state 'insert)
+  (kel-attach-post-command-hook))
 
 (defun kel-insert-line-start ()
   "enter insert mode at the beginning of the lines containing the start of each selection"
   (interactive)
+  (kel-reset-last-insert-commands)
   (when (<= (region-end) (point)) (exchange-point-and-mark))
   (back-to-indentation)
-  (kel--switch-state 'insert))
+  (kel--switch-state 'insert)
+  (kel-attach-post-command-hook))
 
 (defun kel-insert-line-end ()
   "enter insert mode at the end of the lines containing the end of each selection"
   (interactive)
+  (kel-reset-last-insert-commands)
   (when (>= (region-end) (point)) (exchange-point-and-mark))
   (move-end-of-line)
-  (kel--switch-state 'insert))
+  (kel--switch-state 'insert)
+  (kel-attach-post-command-hook))
 
 (defun kel-insert-new-line-below ()
   "enter insert mode in a new line (or in a given count of new lines) below the end of each selection"
   (interactive)
+  (kel-reset-last-insert-commands)
   (end-of-line)
   (dotimes (_ (if (equal current-prefix-arg nil) 1 current-prefix-arg))
     (electric-newline-and-maybe-indent))
-  (kel--switch-state 'insert))
+  (kel--switch-state 'insert)
+  (kel-attach-post-command-hook))
   
 (defun kel-insert-new-line-above ()
   "enter insert mode in a new line (or in a given count of new lines) above the beginning of each selection"
   (interactive)
+  (kel-reset-last-insert-commands)
   (beginning-of-line)
   (dotimes (_ (if (equal current-prefix-arg nil) 1 current-prefix-arg))
     (newline)
     (forward-line -1))
-  (kel--switch-state 'insert))
+  (kel--switch-state 'insert)
+  (kel-attach-post-command-hook))
 
 (provide 'kel-command)
 ;;; kel-command.el ends here

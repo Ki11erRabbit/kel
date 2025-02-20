@@ -101,6 +101,22 @@
 (defun kel-delete-util ()
   (delete-region))
 
+(defun kel-last-insert-mode-change-util ()
+  (let ((commands (kel-get-last-insert-commands)))
+    (kel-last-insert-mode-change-applicator commands)))
+
+(defun kel-last-insert-mode-change-applicator (commands)
+  (pcase commands
+    (`() nil)
+    (_ (progn
+         (kel-last-insert-mode-change-applicator (cdr commands))
+         (pcase (car commands)
+           (`('delete-selection . _) (delete-region))
+           (`('delete-forward-char . ,n) (delete-forward-char n))
+           (`('delete-backward-char . ,n) (delete-backward-char n))
+           (`('insert-char . ,c) (insert c))
+           (`('insert-string . ,s) (insert s)))))))
+  
 
 (defvar kel-last-t-or-f ?f
   "Using t or f command sets this variable.")
