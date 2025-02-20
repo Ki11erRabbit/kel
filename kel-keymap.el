@@ -122,6 +122,8 @@
     (define-key keymap (kbd "<") 'kel-unindent-selection)
     (define-key keymap (kbd "`") 'kel-to-lower-case)
     (define-key keymap (kbd "~") 'kel-to-upper-case)
+    (define-key keymap (kbd "@") 'kel-tabs->spaces)
+    (define-key keymap (kbd "M-@") 'kel-spaces->tabs)
     (define-key keymap (kbd "0") 'digit-argument)
     (define-key keymap (kbd "1") 'digit-argument)
     (define-key keymap (kbd "2") 'digit-argument)

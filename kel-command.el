@@ -353,8 +353,16 @@
 
 ;; TODO: figure out how to swap casing
 
-;; TODO: convert tabs to spaces and vice versa using a variable or count
+(defun kel-tabs->spaces ()
+  "convert tabs to spaces in each selection, uses the buffer tabstop option or the count parameter for tabstop"
+  (interactive)
+  (message "tabs->spaces")
+  (kel-convert-tabs-to-spaces (if (equal current-prefix-arg nil) 0 current-prefix-arg)))
 
+(defun kel-spaces->tabs ()
+  "convert spaces to tabs in each selection, uses the buffer tabstop option or the count parameter for tabstop"
+  (interactive)
+  (kel-convert-spaces-to-tabs (if (equal current-prefix-arg nil) 0 current-prefix-arg)))
 ;; TODO: unselect whitespace from multiple cursors
 
 ;; TODO: rotate selections content, which includes count

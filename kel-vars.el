@@ -92,6 +92,20 @@ The init-state can be any state, including custom ones."
 (defun kel-get-matching-pair (char)
   (nth 1 (alist-get char kel-matching-pairs)))
 
+(defun kel-set-tab-stop ()
+  (setq-default tab-width 8))
+
+(defun kel-get-tab-stop ()
+  tab-width)
+
+(defvar-local kel--indent-width 4
+  "width (in spaces) used for indentation, 0 means a tab character")
+
+(defun kel-set-indent-width (size)
+  (setq kel--indent-width size))
+
+(defun kel-get-indent-width ()
+  kel--indent-width)
 
 ;;; Internal variables
 

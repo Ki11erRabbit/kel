@@ -243,21 +243,39 @@ Ignores CHAR at point."
 
 (defun kel-indent (count)
   "TODO: make work with multiple cursors"
-  (if (use-region-p)
-      (progn (indent-rigidly (region-beginning) (region-end) 2)
-             (setq deactivate-mark nil))
-    (let ((beg (save-excursion (beginning-of-line) (point)))
-          (end (save-excursion (forward-line count) (point))))
-      (indent-rigidly beg end 2))))
+  (let* ((indent-width (kel-get-indent-width))
+         (width (* indent-width count)))
+    (if width
+        (if (use-region-p) ;; if width is greater than 1
+            (progn (indent-rigidly (region-beginning) (region-end) width)
+                   (setq deactivate-mark nil))
+          (let ((beg (save-excursion (beginning-of-line) (point)))
+                (end (save-excursion (forward-line count) (point))))
+            (indent-rigidly beg end (- 0 width))))
+      (if (use-region-p) ;; if width is 0 meaning that we use tabs
+          (progn (indent-region (region-beginning) (region-end) width)
+                 (setq deactivate-mark nil))
+        (let ((beg (save-excursion (beginning-of-line) (point)))
+              (end (save-excursion (forward-line count) (point))))
+          (indent beg end (- 0 width)))))))
 
 (defun kel-unindent (count)
   "TODO: make work with multiple cursors"
-  (if (use-region-p)
-      (progn (indent-rigidly (region-beginning) (region-end) -2)
-             (setq deactivate-mark nil))
-    (let ((beg (save-excursion (beginning-of-line) (point)))
-          (end (save-excursion (forward-line count) (point))))
-      (indent-rigidly beg end -2))))
+  (let* ((indent-width (kel-get-indent-width))
+         (width (* indent-width count)))
+    (if width
+        (if (use-region-p) ;; if width is greater than 1
+            (progn (indent-rigidly (region-beginning) (region-end) (- 0 width))
+                   (setq deactivate-mark nil))
+          (let ((beg (save-excursion (beginning-of-line) (point)))
+                (end (save-excursion (forward-line count) (point))))
+            (indent-rigidly beg end (- 0 width))))
+      (if (use-region-p) ;; if width is 0 meaning that we use tabs
+          (progn (indent-region (region-beginning) (region-end) (- 0 width))
+                 (setq deactivate-mark nil))
+        (let ((beg (save-excursion (beginning-of-line) (point)))
+              (end (save-excursion (forward-line count) (point))))
+          (indent beg end (- 0 width)))))))
 
 
 
@@ -270,6 +288,27 @@ Ignores CHAR at point."
   (if (use-region-p)
       (upcase-region (region-beginning) (region-end))
     (upcase-region (point) (1+ (point)))))
+
+(defun kel-convert-tabs-to-spaces (count)
+  (let ((tab-size (if count count (kel-get-tab-stop)))
+        (offset 0))
+    (dotimes (i (- (region-end) (region-beginning)))
+      (message (format "%s" (char-after (+ (point) i offset))))
+      (if (eq (char-after (+ (point) i offset)) ?\t)
+          (progn (delete-char 1) (setq offset (+ offset tab-size) (insert-char ?\s tab-size)))
+        nil))))
+
+(defun kel-convert-spaces-to-tabs (count)
+  (let ((tab-size (if count count (kel-get-tab-stop)))
+        (offset 0)
+        (spaces-count 0))
+    (dotimes (i (- (region-end) (region-beginning)))
+      (if (eq (char-after (+ (point) i offset)) ?\t)
+          (if (eq spaces-count tab-size)
+              (progn (delete-char (- 0 tab-size) (setq offset (- offset tab-size)) (setq spaces-count 0) (insert-char ?\t)))
+            (setq spaces-count (+ spaces-count 1)))
+        (when (> spaces-count 0) (setq spaces-count 0))
+        nil))))
 
 ;; Modes
 
