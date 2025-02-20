@@ -33,16 +33,11 @@
 (defun kel-insert-post-command-hook ()
   (let* ((keys (this-command-keys-vector))
          (key-list (append keys nil)))
-    ;(seq-doseq (key keys)
-                                        ;(message (format "%s" (kbd (string (upcase key))))))
-    (message (format "Keys %s" keys))
     (pcase key-list
       (`(127) (kel-add-insert-command 'delete-backward 1))
       (`('deletechar) (kel-add-insert-command 'delete-forward 1))
       (`() nil)
-      (c (progn (kel-add-insert-command 'insert-char (car c))
-                   (message (format "adding insert char %s" (kbd (string (upcase (car c))))))))
-      )))
+      (c (kel-add-insert-command 'insert-char (car c))))))
 
 
 (provide 'kel-hooks)

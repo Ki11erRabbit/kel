@@ -111,11 +111,11 @@
     (_ (progn
          (kel-last-insert-mode-change-applicator (cdr commands))
          (pcase (car commands)
-           (`('delete-selection . _) (delete-region))
-           (`('delete-forward-char . ,n) (delete-forward-char n))
-           (`('delete-backward-char . ,n) (delete-backward-char n))
-           (`('insert-char . ,c) (insert c))
-           (`('insert-string . ,s) (insert s)))))))
+           (`(delete-selection . _) (delete-region))
+           (`(delete-forward . ,n) (delete-forward-char n))
+           (`(delete-backward . ,n) (delete-backward-char n))
+           (`(insert-char . ,c) (insert c))
+           (`(insert-string . ,s) (insert s)))))))
   
 
 (defvar kel-last-t-or-f ?f
