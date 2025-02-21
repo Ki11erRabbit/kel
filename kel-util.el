@@ -229,16 +229,10 @@ Ignores CHAR at point."
 
 (defun kel-line-util ()
   "Select the current line."
-  (interactive)
-  (let ((regions-end (region-end)))
-  (if (use-region-p)
-      (exchange-point-and-mark)
-    nil)
   (beginning-of-line)
   (set-mark (point))
-  (goto-char regions-end)
   (forward-line)
-  (goto-char (- (point) 1))))
+  (goto-char (- (point) 1)))
 
 
 (defun kel-indent (count)
@@ -302,6 +296,30 @@ Ignores CHAR at point."
     (if (use-region-p)
         (replace-regexp (concat "\\" (make-string tab-size ?\s)) "	")
       nil)))
+
+
+;; Multiple Cursors
+
+(defun kel-mc-split-region (beg end search)
+  "Split region each time SEARCH occurs between BEG and END.
+
+This can be thought of as an inverse to `mc/mark-all-in-region'."
+  (let ((case-fold-search nil))
+    (if (string= search "")
+        (user-error "Empty search term")
+      (progn
+        (mc/remove-fake-cursors)
+        (goto-char beg)
+        (push-mark beg)
+        (while (search-forward search end t)
+          (save-excursion
+            (goto-char (match-beginning 0))
+            (mc/create-fake-cursor-at-point))
+          (push-mark (match-end 0)))
+        (unless (= (point) end)
+          (goto-char end))
+        (mc/maybe-multiple-cursors-mode)))))
+
 
 ;; Modes
 

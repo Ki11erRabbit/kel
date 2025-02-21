@@ -124,6 +124,11 @@
     (define-key keymap (kbd "~") 'kel-to-upper-case)
     (define-key keymap (kbd "@") 'kel-tabs->spaces)
     (define-key keymap (kbd "M-@") 'kel-spaces->tabs)
+    (define-key keymap (kbd "M-s") 'kel-split-selections-line-boundry)
+    (define-key keymap (kbd "C") 'kel-duplicate-selections-following-lines)
+    (define-key keymap (kbd "M-C") 'kel-duplicate-selections-preceding-lines)
+    (define-key keymap (kbd ",") 'kel-clear-selections)
+    (define-key keymap (kbd "M-,") 'kel-clear-selections) ;; The matches the behavior but not the documentation
     (define-key keymap (kbd "0") 'digit-argument)
     (define-key keymap (kbd "1") 'digit-argument)
     (define-key keymap (kbd "2") 'digit-argument)

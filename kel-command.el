@@ -32,6 +32,7 @@
 (require 'seq)
 (require 'simple)
 (require 'electric)
+(require 'multiple-cursors)
 
 (require 'kel-vars)
 (require 'kel-util)
@@ -367,6 +368,31 @@
 
 ;; TODO: rotate selections content, which includes count
 
+
+;; Multiple Selections
+
+;; TODO: create selection for regex
+
+(defun kel-split-selections-line-boundry ()
+  "select first and last characters of each selection. Currently does not work"
+  (interactive)
+  (kel-mc-split-region (region-beginning) (region-end) "\n"))
+
+(defun kel-duplicate-selections-following-lines ()
+  "duplicate selections on the lines that follow them"
+  (interactive)
+  (mc/mark-next-lines (if (equal current-prefix-arg nil) 0 current-prefix-arg)))
+
+(defun kel-duplicate-selections-preceding-lines ()
+  "duplicate selections on the lines that precede them"
+  (interactive)
+  (mc/mark-previous-lines (if (equal current-prefix-arg nil) 0 current-prefix-arg)))
+
+(defun kel-clear-selections ()
+  "clear selections to only keep the main one"
+  (interactive)
+  (mc/maybe-multiple-cursors-mode))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; STATE TOGGLE
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -385,7 +411,6 @@
   "Switch to NORMAL state."
   (interactive)
   (kel-detach-post-command-hook)
-  (message (format "%s" (kel-get-last-insert-commands)))
   (cond
    ((kel-insert-mode-p)
     (kel--switch-state 'normal))))
@@ -397,7 +422,7 @@
   (kel-reset-last-insert-commands)
   (kel--switch-state 'insert)
   (kel-attach-post-command-hook)
-  (when (<= (region-end) (point))
+  (when (and (use-region-p) (<= (region-end) (point)))
       (exchange-point-and-mark)))
   
 (defun kel-insert-after ()
@@ -406,8 +431,10 @@
   (kel-reset-last-insert-commands)
   (kel-attach-post-command-hook)
   (kel--switch-state 'insert)
-  (when (> (region-end) (point))
-      (exchange-point-and-mark)))
+  (if (and (use-region-p) (> (region-end) (point)))
+      (exchange-point-and-mark)
+    (kel-set-mark-if-inactive)
+    (forward-char)))
 
 (defun kel-insert-yank-and-delete ()
   "yank and delete selections and enter insert mode"

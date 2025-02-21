@@ -31,6 +31,7 @@
 (add-to-list 'load-path "/home/ki11errabbit/Documents/Programing-Projects/Emacs-Lisp/kel/")
 (add-to-list 'load-path "/home/ki11errabbit/Documents/Programing-Projects/Emacs-Lisp/multiple-cursors.el")
 
+
 ;;; Modules
 
 (require 'kel-keymap)
@@ -38,6 +39,7 @@
 (require 'kel-util)
 (require 'kel-command)
 (require 'kel-core)
+
 
 
 (provide 'kel)
