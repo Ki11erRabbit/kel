@@ -298,6 +298,42 @@ Ignores CHAR at point."
         (replace-regexp (concat "\\" (make-string tab-size ?\s)) "	")
       nil)))
 
+;; Changes through external programs
+
+(defun kel-shell-pipe (command)
+  (mc/for-each-cursor-ordered
+   (shell-command-on-region (mc/cursor-beg cursor)
+                            (mc/cursor-end cursor)
+                            command
+                            nil
+                            1)))
+
+(defun kel-shell-pipe-ignore (command)
+  (mc/for-each-cursor-ordered
+   (with-output-to-string
+     (shell-command-on-region (mc/cursor-beg cursor)
+                              (mc/cursor-end cursor)
+                              command
+                              standard-output))))
+
+(defun kel-shell-pipe-before (command)
+  (mc/for-each-cursor-ordered
+   (mc/save-excursion
+    (goto-char (mc/cursor-beg cursor))
+    (insert (with-output-to-string
+              (shell-command-on-region (mc/cursor-beg cursor)
+                                       (mc/cursor-end cursor)
+                                       command
+                                       standard-output))))))
+(defun kel-shell-pipe-after (command)
+  (mc/for-each-cursor-ordered
+   (mc/save-excursion
+    (goto-char (mc/cursor-end cursor))
+    (insert (with-output-to-string
+              (shell-command-on-region (mc/cursor-beg cursor)
+                                       (mc/cursor-end cursor)
+                                       command
+                                       standard-output))))))
 
 ;; Multiple Cursors
 

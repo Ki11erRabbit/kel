@@ -45,6 +45,10 @@
                   "Kel INSERT state minor mode."
                   :keymap kel-insert-state-keymap)
 
+(kel-define-state goto
+                  "Kel GOTO state minor mode."
+                  :keymap kel-goto-state-keymap)
+
 
 ; TODO: add other modes
 
@@ -130,6 +134,7 @@ there's no chance for kel to call an init function."
     kel-cycle-forwards
     kel-cycle-backwards
     kel-keep-match-regex
+    kel-remove-match-regex
 
         )
 	)

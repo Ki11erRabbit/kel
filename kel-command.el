@@ -368,7 +368,128 @@
 
 ;; TODO: rotate selections content, which includes count
 
+;; Changes through external programs
 
+(defun kel-pipe-replace ()
+  "pipe each selection through the given external filter program and replace the selection with its output."
+  (interactive)
+  (let ((command (read-string "pipe:")))
+    (kel-shell-pipe command)))
+
+(defun kel-pipe-ignore ()
+  "pipe each selection through the given external filter program and ignore its output."
+  (interactive)
+  (let ((command (read-string "pipe-to:")))
+    (kel-shell-pipe-ignore command)))
+
+(defun kel-pipe-before ()
+  "insert and select command output before each selection."
+  (interactive)
+  (let ((command (read-string "insert-output:")))
+    (kel-shell-pipe-before command)))   
+
+(defun kel-pipe-after ()
+  "append and select command output after each selection."
+  (interactive)
+  (let ((command (read-string "append-output:")))
+    (kel-shell-pipe-before command)))
+
+;;Goto Commands
+
+(defun kel-goto-line-begin ()
+  "go to line begin"
+  (interactive)
+  (when (kel-is-goto-selection-set)
+    (kel-set-mark-if-inactive))
+  (move-beginning-of-line)
+  (kel-goto-exit))
+
+(defun kel-goto-line-end ()
+  "go to line end"
+  (interactive)
+  (when (kel-is-goto-selection-set)
+    (kel-set-mark-if-inactive))
+  (move-end-of-line)
+  (kel-goto-exit))     
+
+(defun kel-goto-line-indent ()
+  "go to non blank line start"
+  (interactive)
+  (when (kel-is-goto-selection-set)
+    (kel-set-mark-if-inactive))
+  (move-to-tab-stop)
+  (kel-goto-exit))
+
+(defun kel-goto-buffer-start ()
+  "goto the first line"
+  (interactive)
+  (when (kel-is-goto-selection-set)
+    (kel-set-mark-if-inactive))
+  (goto-line 0)
+  (move-beginning-of-line)
+  (kel-goto-exit))
+
+(defun kel-goto-buffer-end ()
+  "goto the last line"
+  (interactive)
+  (when (kel-is-goto-selection-set)
+    (kel-set-mark-if-inactive))
+  (end-of-buffer)
+  (move-beginning-of-line)
+  (kel-goto-exit))
+
+(defun kel-goto-buffer-end-char ()
+  "go to last char of last line"
+  (interactive)
+  (when (kel-is-goto-selection-set)
+    (kel-set-mark-if-inactive))
+  (end-of-buffer)
+  (kel-goto-exit))
+
+(defun kel-goto-window-top ()
+  "go to the first displayed line"
+  (interactive)
+  (when (kel-is-goto-selection-set)
+    (kel-set-mark-if-inactive))
+  (move-to-window-line 0)
+  (move-beginning-of-line)
+  (kel-goto-exit))
+
+(defun kel-goto-window-middle ()
+  "go to the middle displayed line"
+  (interactive)
+  (when (kel-is-goto-selection-set)
+    (kel-set-mark-if-inactive))
+  (move-to-window-line (/ (window-total-height) 2))
+  (move-beginning-of-line)
+  (kel-goto-exit))
+
+(defun kel-goto-window-bottom ()
+  "go to the last displayed line"
+  (interactive)
+  (when (kel-is-goto-selection-set)
+    (kel-set-mark-if-inactive))
+  (move-to-window-line (window-total-height))
+  (move-beginning-of-line)
+  (kel-goto-exit))
+
+(defun kel-goto-last-buffer ()
+  "go to the previous (alternate) buffer"
+  (interactive)
+  (previous-buffer)
+  (kel-goto-exit))
+
+(defun kel-goto-file-name ()
+  "open the file whose name is selected"
+  (interactive)
+  (if (use-region-p)
+      (let ((file-name (buffer-substring (region-beginning) (region-end))))
+        (find-file file-name))
+    (find-file (make-string (char-after) 1))))
+
+;; TODO: goto last buffer modification position
+
+  
 ;; Multiple Selections
 
 (defun kel-match-selection (arg regex)
@@ -405,13 +526,14 @@
   (interactive)
   (mc/maybe-multiple-cursors-mode))
 
-
 (defun kel-keep-match-regex ()
+  "keep selections that match the given regex"
   (interactive)
   (let ((regex (read-string "keep matching:")))
     (kel-keep-match regex)))
 
 (defun kel-remove-match-regex ()
+  "clear selections that match the given regex"
   (interactive)
   (let ((regex (read-string "keep not matching:")))
     (kel-remove-match regex)))
@@ -531,6 +653,35 @@
     (forward-line -1))
   (kel--switch-state 'insert)
   (kel-attach-post-command-hook))
+
+
+(defun kel-goto-exit ()
+  "Switch to NORMAL state."
+  (interactive)
+  (top-level)
+  (kel-goto-selection-disable)
+  (cond
+   ((kel-goto-mode-p)
+    (kel--switch-state 'normal))))
+
+
+(defun kel-goto-mode ()
+  "When a count is specified, send the anchor to the given line, otherwise enter goto-mode"
+  (interactive)
+  (if (equal current-prefix-arg nil)
+      (progn (kel--switch-state 'goto) (kel-goto-selection-disable))
+    (mc/disable-multiple-cursors-mode)
+    (kel-deactivate-mark)
+    (goto-line current-prefix-arg)))
+
+(defun kel-goto-select-mode ()
+  "When a count is specified, send the anchor to the given line, otherwise enter goto-mode"
+  (interactive)
+  (if (equal current-prefix-arg nil)
+      (progn (message "first") (kel--switch-state 'goto) (message "second") (kel-goto-selection-enable)(message "third"))
+    (mc/disable-multiple-cursors-mode)
+    (kel-set-mark-if-inactive)
+    (goto-line current-prefix-arg)))
 
 (provide 'kel-command)
 ;;; kel-command.el ends here

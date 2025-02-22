@@ -141,5 +141,17 @@ Valid commands include:
 (defun kel-get-last-insert-commands ()
   kel--last-insert-commands)
 
+(defvar-local kel--goto-selection-enabled nil
+  "This variable records if we entered goto mode with a selection")
+
+(defun kel-is-goto-selection-set ()
+  kel--goto-selection-enabled)
+
+(defun kel-goto-selection-enable ()
+  (setq kel--goto-selection-enabled t))
+
+(defun kel-goto-selection-disable ()
+  (setq kel--goto-selection-enabled nil))
+
 (provide 'kel-vars)
 ;;; kel-vars.el ends here
