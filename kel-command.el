@@ -372,6 +372,7 @@
 ;; Multiple Selections
 
 (defun kel-match-selection (arg regex)
+  "create a selection for each match of the given regex (selects the count capture if it is given)"
   (interactive "p\nsselect: ")
   (kel-match-selection-regex regex (if (equal current-prefix-arg nil) nil current-prefix-arg)))
 
@@ -383,6 +384,11 @@
   "select first and last characters of each selection. Currently does not work"
   (interactive)
   (kel-mc-split-region (region-beginning) (region-end) "\n"))
+
+(defun kel-select-first-last ()
+  "select first and last characters of each selection"
+  (interactive)
+  (kel-set-selections-to-start-end))
 
 (defun kel-duplicate-selections-following-lines ()
   "duplicate selections on the lines that follow them"

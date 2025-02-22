@@ -390,6 +390,26 @@ This can be thought of as an inverse to `mc/mark-all-in-region'."
         (mc/maybe-multiple-cursors-mode)))))
 
 
+
+(defun kel-set-selections-to-start-end ()
+  "Gets the region of each cursor, removes all cursors, and puts new cursors at the ends of those selections"
+  (let ((cursor-pos (cons (cons (region-beginning) (region-end)) nil))
+        (len 0))
+    (mc/for-each-fake-cursor 
+     (setq cursor-pos (cons (cons (mc/cursor-beg cursor) (mc/cursor-end cursor)) cursor-pos)))
+    (setq len (length cursor-pos))
+    (mc/remove-fake-cursors)
+    (deactivate-mark)
+    (dolist (pair cursor-pos)
+      (goto-char (car pair))
+      (mc/create-fake-cursor-at-point)
+      (goto-char (cdr pair))
+      (if (> len 1)
+          (mc/create-fake-cursor-at-point)
+        nil)
+      (setq len (- len 1)))))
+                             
+
 ;; Modes
 
 (defvar kel-normal-mode)
