@@ -31,6 +31,7 @@
 (require 'cl-lib)
 (require 'seq)
 (require 'color)
+(require 'multiple-cursors)
 
 (require 'kel-vars)
 (require 'kel-keymap)
@@ -299,6 +300,74 @@ Ignores CHAR at point."
 
 
 ;; Multiple Cursors
+
+(defun kel-match-selection-regex (regex &optional group)
+  "TODO: implement getting nth regex capture group"
+  (if (not (region-active-p))
+      (error "nothing selected")
+    (kel-mc/mark-all-in-region-regexp regex (region-beginning) (region-end))))
+          
+(defun kel-mc/mark-all-in-region-regexp (regex beg end)
+  "Find and mark all the parts in the region matching the given regexp."
+  (let ((search regex)
+        (case-fold-search nil))
+    (if (string= search "")
+        (message "Mark aborted")
+      (progn
+        (mc/remove-fake-cursors)
+        (goto-char beg)
+        (let ((lastmatch))
+          (while (and (< (point) end) ; can happen because of (forward-char)
+                      (search-forward-regexp search end t))
+            (push-mark (match-beginning 0))
+            (mc/create-fake-cursor-at-point)
+            (setq lastmatch (point))
+            (when (= (point) (match-beginning 0))
+              (forward-char)))
+          (unless lastmatch
+            (error "Search failed for %S" search)))
+        (goto-char (match-end 0))
+        (if (< (mc/num-cursors) 3)
+            (mc/disable-multiple-cursors-mode)
+          (mc/pop-state-from-overlay (mc/furthest-cursor-before-point))
+          (multiple-cursors-mode 1))))))
+
+(defun kel-split-selection-regex (regex &optional group)
+  "TODO: implement getting the nth regex capture group"
+  (if (not (region-active-p))
+      (error "nothing selected")
+    (kel-mc/mark-all-except-region-regexp regex (region-beginning) (region-end))))
+
+(defun kel-mc/mark-all-except-region-regexp (regex beg end)
+  "Find and mark all the parts in the region matching the given regexp."
+  (let ((search regex)
+        (case-fold-search nil))
+    (if (string= search "")
+        (message "Mark aborted")
+      (progn
+        (mc/remove-fake-cursors)
+        (goto-char beg)
+        (let ((lastmatch))
+          (push-mark beg)
+          (while (and (< (point) end) ; can happen because of (forward-char)
+                      (search-forward-regexp search end t))
+            (backward-char 2)
+            (mc/create-fake-cursor-at-point)
+            (forward-char 2)
+            (setq lastmatch (point))
+            (when (= (point) (match-beginning 0)) 
+              (forward-char))
+            (push-mark (match-end 0)))
+          (unless lastmatch
+            (error "Search failed for %S" search)))
+        (push-mark (point))
+        (goto-char end)
+        (mc/create-fake-cursor-at-point)
+        (if (< (mc/num-cursors) 3)
+            (mc/disable-multiple-cursors-mode)
+          (mc/pop-state-from-overlay (mc/furthest-cursor-before-point))
+          (multiple-cursors-mode 1))))))
+
 
 (defun kel-mc-split-region (beg end search)
   "Split region each time SEARCH occurs between BEG and END.

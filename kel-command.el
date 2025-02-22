@@ -316,7 +316,7 @@
 (defun kel-join-lines-with-spaces ()
   "join selected lines and select spaces inserted in place of line breaks"
   (interactive)
-  (query-replace-regexp "\n" " "))
+  (replace-regexp "\n" " "))
 
 ;; TODO figure out what merge contiguous selections together means
 
@@ -371,7 +371,13 @@
 
 ;; Multiple Selections
 
-;; TODO: create selection for regex
+(defun kel-match-selection (arg regex)
+  (interactive "p\nsselect: ")
+  (kel-match-selection-regex regex (if (equal current-prefix-arg nil) nil current-prefix-arg)))
+
+(defun kel-split-selection (arg regex)
+  (interactive "p\nssplit: ")
+  (kel-split-selection-regex regex (if (equal current-prefix-arg nil) nil current-prefix-arg)))
 
 (defun kel-split-selections-line-boundry ()
   "select first and last characters of each selection. Currently does not work"

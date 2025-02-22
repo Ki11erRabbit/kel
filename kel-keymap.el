@@ -125,6 +125,8 @@
     (define-key keymap (kbd "@") 'kel-tabs->spaces)
     (define-key keymap (kbd "M-@") 'kel-spaces->tabs)
     (define-key keymap (kbd "M-s") 'kel-split-selections-line-boundry)
+    (define-key keymap (kbd "s") 'kel-match-selection)
+    (define-key keymap (kbd "S") 'kel-split-selection)
     (define-key keymap (kbd "C") 'kel-duplicate-selections-following-lines)
     (define-key keymap (kbd "M-C") 'kel-duplicate-selections-preceding-lines)
     (define-key keymap (kbd ",") 'kel-clear-selections)
