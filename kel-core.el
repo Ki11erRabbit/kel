@@ -127,6 +127,9 @@ there's no chance for kel to call an init function."
     kel-up-to-char-reverse
     kel-select-up-to-char-reverse
     kel-replace-character
+    kel-cycle-forwards
+    kel-cycle-backwards
+    kel-keep-match-regex
 
         )
 	)

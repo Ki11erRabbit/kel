@@ -393,23 +393,44 @@
 (defun kel-duplicate-selections-following-lines ()
   "duplicate selections on the lines that follow them"
   (interactive)
-  (mc/mark-next-lines (if (equal current-prefix-arg nil) 0 current-prefix-arg)))
+  (mc/mark-next-lines (if (equal current-prefix-arg nil) 1 current-prefix-arg)))
 
 (defun kel-duplicate-selections-preceding-lines ()
   "duplicate selections on the lines that precede them"
   (interactive)
-  (mc/mark-previous-lines (if (equal current-prefix-arg nil) 0 current-prefix-arg)))
+  (mc/mark-previous-lines (if (equal current-prefix-arg nil) 1 current-prefix-arg)))
 
 (defun kel-clear-selections ()
   "clear selections to only keep the main one"
   (interactive)
   (mc/maybe-multiple-cursors-mode))
 
+
+(defun kel-keep-match-regex ()
+  (interactive)
+  (let ((regex (read-string "keep matching:")))
+    (kel-keep-match regex)))
+
+(defun kel-remove-match-regex ()
+  (interactive)
+  (let ((regex (read-string "keep not matching:")))
+    (kel-remove-match regex)))
+
 (defun kel-pipe-replace-only-success ()
   "pipe each selection to the given shell command and keep the ones for which the shell returned 0."
   (interactive)
   (let ((command (read-string "keep pipe:")))
     (kel-pipe-only-success command)))
+
+(defun kel-cycle-forwards ()
+  "rotate main selection (the main selection becomes the next one)"
+  (interactive)
+  (kel-move-selection-forwards (if (equal current-prefix-arg nil) 1 current-prefix-arg)))
+
+(defun kel-cycle-backwards ()
+  "rotate main selection backward (the main selection becomes the previous one)"
+  (interactive)
+  (kel-move-selection-backwards (if (equal current-prefix-arg nil) 1 current-prefix-arg)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; STATE TOGGLE

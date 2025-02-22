@@ -389,8 +389,6 @@ This can be thought of as an inverse to `mc/mark-all-in-region'."
           (goto-char end))
         (mc/maybe-multiple-cursors-mode)))))
 
-
-
 (defun kel-set-selections-to-start-end ()
   "Gets the region of each cursor, removes all cursors, and puts new cursors at the ends of those selections"
   (let ((cursor-pos (cons (cons (region-beginning) (region-end)) nil))
@@ -409,6 +407,88 @@ This can be thought of as an inverse to `mc/mark-all-in-region'."
         nil)
       (setq len (- len 1)))))
 
+
+(defun kel-keep-match (regex)
+  "Keep the selection if the regex matches within a cursor region
+TODO: ensure that selections are kept"
+  (let ((cursors nil)
+        (cursor-direction nil)
+        (last-matching-pair nil)
+        (last-matching-cursor nil))
+    (mc/for-each-cursor-ordered
+     (setq cursors (cons (cons (mc/cursor-beg cursor) (mc/cursor-end cursor)) cursors))
+     (setq cursor-direction (if (< (overlay-get cursor 'point) (overlay-get cursor 'mark)) 'beg (if (> (overlay-get cursor 'point) (overlay-get cursor 'mark)) 'end nil))))
+    (mc/remove-fake-cursors)
+    (deactivate-mark)
+    (setq cursors (reverse cursors))
+    (dolist (pair cursors)
+      (goto-char (car pair))
+      (if (search-forward-regexp regex (cdr pair) t)
+          (progn
+            (setq last-matching-pair pair)
+          (pcase cursor-direction
+            ('beg (progn
+                    (setq last-matching-cursor (mc/create-fake-cursor-at-point))
+                    (push-mark (cdr pair))))
+            ('end (progn
+                    (push-mark (point))
+                    (goto-char (cdr pair))
+                    (setq last-matching-cursor (mc/create-fake-cursor-at-point))))))
+        nil))
+    (if last-matching-pair
+        (pcase cursor-direction
+          ('beg (progn
+                  (mc/remove-fake-cursor last-matching-cursor)
+                  (goto-char (car last-matching-pair))
+                  (set-mark (cdr last-matching-pair))))
+            ('end (progn
+                  (mc/remove-fake-cursor last-matching-cursor)
+                  (set-mark (point))
+                  (goto-char (cdr last-matching-pair)))))
+      nil)
+  (mc/maybe-multiple-cursors-mode)))
+            
+ (defun kel-remove-match (regex)
+  "clear selections that match the given regex
+TODO: ensure that selections are kept"
+  (let ((cursors nil)
+        (cursor-direction nil)
+        (last-matching-pair nil)
+        (last-matching-cursor nil))
+    (mc/for-each-cursor-ordered
+     (setq cursors (cons (cons (mc/cursor-beg cursor) (mc/cursor-end cursor)) cursors))
+     (setq cursor-direction (if (< (overlay-get cursor 'point) (overlay-get cursor 'mark)) 'beg (if (> (overlay-get cursor 'point) (overlay-get cursor 'mark)) 'end nil))))
+    (mc/remove-fake-cursors)
+    (deactivate-mark)
+    (setq cursors (reverse cursors))
+    (dolist (pair cursors)
+      (goto-char (car pair))
+      (if (search-forward-regexp regex (cdr pair) t)
+          nil
+        (progn
+            (setq last-matching-pair pair)
+          (pcase cursor-direction
+            ('beg (progn
+                    (setq last-matching-cursor (mc/create-fake-cursor-at-point))
+                    (push-mark (cdr pair))))
+            ('end (progn
+                    (push-mark (point))
+                    (goto-char (cdr pair))
+                    (setq last-matching-cursor (mc/create-fake-cursor-at-point))))))))
+    (if last-matching-pair
+        (pcase cursor-direction
+          ('beg (progn
+                  (mc/remove-fake-cursor last-matching-cursor)
+                  (goto-char (car last-matching-pair))
+                  (set-mark (cdr last-matching-pair))))
+            ('end (progn
+                  (mc/remove-fake-cursor last-matching-cursor)
+                  (set-mark (point))
+                  (goto-char (cdr last-matching-pair)))))
+      nil)
+  (mc/maybe-multiple-cursors-mode)))             
+   
+
 (defun kel-pipe-only-success (command)
   "pipes the output of a command only if it succeeds"
   (mc/for-each-cursor-ordered
@@ -421,6 +501,14 @@ This can be thought of as an inverse to `mc/mark-all-in-region'."
         (goto-char (mc/cursor-beg cursor))
         (delete-region (mc/cursor-beg cursor) (mc/cursor-end cursor))
         (insert output))))))
+
+(defun kel-move-selection-forwards (count)
+  (dotimes (i count)
+    (mc/cycle-forward)))
+    
+(defun kel-move-selection-backwards (count)
+  (dotimes (i count)
+    (mc/cycle-backward)))
 
 ;; Modes
 
