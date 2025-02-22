@@ -153,5 +153,14 @@ Valid commands include:
 (defun kel-goto-selection-disable ()
   (setq kel--goto-selection-enabled nil))
 
+(defvar-local kel--view-count 1
+  "This variable holds the prefix number for view mode")
+
+(defun kel-set-view-count (value)
+  (setq kel--view-count value))
+
+(defun kel-get-view-count ()
+  kel--view-count)
+
 (provide 'kel-vars)
 ;;; kel-vars.el ends here

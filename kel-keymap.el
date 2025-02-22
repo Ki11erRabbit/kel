@@ -43,8 +43,9 @@
 (defvar kel-normal-state-keymap
   (let ((keymap (make-keymap)))
     (suppress-keymap keymap t)
-    (define-key keymap (kbd "g") 'kel-goto-mode)
-    (define-key keymap (kbd "G") 'kel-goto-select-mode)
+    (define-key keymap (kbd "g") 'kel-goto-mode-start)
+    (define-key keymap (kbd "G") 'kel-goto-select-mode-start)
+    (define-key keymap (kbd "v") 'kel-view-mode-start)
     (define-key keymap (kbd "i") 'kel-insert-before)
     (define-key keymap (kbd "a") 'kel-insert-after)
     (define-key keymap (kbd "c") 'kel-insert-yank-and-delete)
@@ -189,6 +190,15 @@
     
 (defvar kel-view-state-keymap
   (let ((keymap (make-keymap)))
+    (define-key keymap (kbd "v") 'kel-center-vertically)
+    (define-key keymap (kbd "c") 'kel-center-vertically)
+    (define-key keymap (kbd "m") 'kel-center-horizontally)
+    (define-key keymap (kbd "t") 'kel-scroll-selection-top)
+    (define-key keymap (kbd "b") 'kel-scroll-selection-bottom)
+    (define-key keymap (kbd "h") 'kel-scroll-left)
+    (define-key keymap (kbd "j") 'kel-scroll-down)
+    (define-key keymap (kbd "k") 'kel-scroll-up)
+    (define-key keymap (kbd "l") 'kel-scroll-right)
     (define-key keymap [escape] 'kel-view-exit)
     (define-key keymap [remap kmacro-end-or-call-macro] #'kel-end-or-call-kmacro)
     (define-key keymap [remap kmacro-end-macro] #'kel-end-kmacro)

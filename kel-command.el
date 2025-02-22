@@ -47,7 +47,7 @@
   "Move to the left."
   (interactive)
   (kel-deactivate-mark)
-  (backward-char (if (equal current-prefix-arg nil) 1 current-prefix-arg)))
+  (message "backward-char %s" (backward-char (if (equal current-prefix-arg nil) 1 current-prefix-arg))))
 
 (defun kel-select-backward-char ()
   "Move to the left and select."
@@ -401,7 +401,7 @@
   (interactive)
   (when (kel-is-goto-selection-set)
     (kel-set-mark-if-inactive))
-  (move-beginning-of-line)
+  (move-beginning-of-line nil)
   (kel-goto-exit))
 
 (defun kel-goto-line-end ()
@@ -409,7 +409,7 @@
   (interactive)
   (when (kel-is-goto-selection-set)
     (kel-set-mark-if-inactive))
-  (move-end-of-line)
+  (move-end-of-line nil)
   (kel-goto-exit))     
 
 (defun kel-goto-line-indent ()
@@ -489,7 +489,63 @@
 
 ;; TODO: goto last buffer modification position
 
-  
+;; View commands
+
+(defun kel-center-vertically ()
+  "center the main selection in the window (vertically)"
+  (interactive)
+  (recenter)
+  (kel-view-exit))
+
+(defun kel-center-horizontally ()
+  "center the main selection in the window (horizontally)"
+  (interactive)
+  (let ((mid (/ (window-width) 2))
+        (line-len (save-excursion (end-of-line) (current-column)))
+        (cur (current-column)))
+    (if (< mid cur)
+        (set-window-hscroll (selected-window)
+                            (- cur mid))))
+  (kel-view-exit))
+
+(defun kel-scroll-selection-top ()
+  "scroll to put the main selection on the top line of the window"
+  (interactive)
+  (let ((line (line-number-at-pos)))
+    (scroll-up-line (- line 1))
+  (kel-view-exit)))
+
+(defun kel-scroll-selection-bottom ()
+  "scroll to put the main selection on the bottom line of the window"
+  (interactive)
+  (let ((line (line-number-at-pos)))
+    (scroll-down-line (- line 1)))
+  (kel-view-exit))
+
+(defun kel-scroll-left ()
+  "scroll the window count columns left"
+  (interactive)
+  (scroll-right (kel-get-view-count))
+  (kel-view-exit))
+
+(defun kel-scroll-down ()
+  "scroll the window count line downward"
+  (interactive)
+  (scroll-up (kel-get-view-count))
+  (kel-view-exit))
+
+(defun kel-scroll-up ()
+  "scroll the window count line upward"
+  (interactive)
+  (scroll-down (kel-get-view-count))
+  (kel-view-exit))
+
+(defun kel-scroll-right ()
+  "scroll the window count columns right"
+  (interactive)
+  (scroll-left (kel-get-view-count))
+  (kel-view-exit))
+
 ;; Multiple Selections
 
 (defun kel-match-selection (arg regex)
@@ -664,8 +720,7 @@
    ((kel-goto-mode-p)
     (kel--switch-state 'normal))))
 
-
-(defun kel-goto-mode ()
+(defun kel-goto-mode-start ()
   "When a count is specified, send the anchor to the given line, otherwise enter goto-mode"
   (interactive)
   (if (equal current-prefix-arg nil)
@@ -674,14 +729,28 @@
     (kel-deactivate-mark)
     (goto-line current-prefix-arg)))
 
-(defun kel-goto-select-mode ()
+(defun kel-goto-select-mode-start ()
   "When a count is specified, send the anchor to the given line, otherwise enter goto-mode"
   (interactive)
   (if (equal current-prefix-arg nil)
-      (progn (message "first") (kel--switch-state 'goto) (message "second") (kel-goto-selection-enable)(message "third"))
+      (progn (kel--switch-state 'goto) (kel-goto-selection-enable))
     (mc/disable-multiple-cursors-mode)
     (kel-set-mark-if-inactive)
     (goto-line current-prefix-arg)))
+
+
+(defun kel-view-exit ()
+  "Switch to NORMAL state."
+  (interactive)
+  (cond
+   ((kel-view-mode-p)
+    (kel--switch-state 'normal))))
+
+(defun kel-view-mode-start ()
+  "enter view-mode"
+  (interactive)
+  (kel-set-view-count (if (equal current-prefix-arg nil) 1 current-prefix-arg))
+  (kel--switch-state 'view))
 
 (provide 'kel-command)
 ;;; kel-command.el ends here
