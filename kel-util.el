@@ -408,7 +408,19 @@ This can be thought of as an inverse to `mc/mark-all-in-region'."
           (mc/create-fake-cursor-at-point)
         nil)
       (setq len (- len 1)))))
-                             
+
+(defun kel-pipe-only-success (command)
+  "pipes the output of a command only if it succeeds"
+  (mc/for-each-cursor-ordered
+   (let* ((buffer-text (buffer-substring (mc/cursor-beg cursor) (mc/cursor-end cursor)))
+         (output
+          (shell-command-to-string (format "out=$(echo \"%s\" | %s) && echo \"$out\"" buffer-text command))))
+     (message (format "message was: %s" output))
+     (when (> (length output) 0)
+       (mc/save-excursion
+        (goto-char (mc/cursor-beg cursor))
+        (delete-region (mc/cursor-beg cursor) (mc/cursor-end cursor))
+        (insert output))))))
 
 ;; Modes
 

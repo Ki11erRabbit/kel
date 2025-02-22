@@ -405,6 +405,12 @@
   (interactive)
   (mc/maybe-multiple-cursors-mode))
 
+(defun kel-pipe-replace-only-success ()
+  "pipe each selection to the given shell command and keep the ones for which the shell returned 0."
+  (interactive)
+  (let ((command (read-string "keep pipe:")))
+    (kel-pipe-only-success command)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; STATE TOGGLE
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -115,8 +115,22 @@ there's no chance for kel to call an init function."
     kel-duplicate-selections-following-lines
     kel-duplicate-selections-preceding-lines
     kel-split-selections-line-boundry
+    kel-match-selection
+    kel-split-selection
+    kel-select-first-last
+    kel-to-char
+    kel-select-to-char
+    kel-up-to-char
+    kel-select-up-to-char
+    kel-to-char-reverse
+    kel-select-to-char-reverse
+    kel-up-to-char-reverse
+    kel-select-up-to-char-reverse
+    kel-replace-character
+
         )
 	)
+
 " nil "~/.emacs.d/.kel-mc-lists.el"))
   (setq mc/list-file "~/.emacs.d/.kel-mc-lists.el")
   (setq mark-even-if-inactive nil)
