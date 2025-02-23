@@ -104,10 +104,7 @@ there's no chance for kel to call an init function."
 
 (defun kel--disable ()
   "Disable Kel."
-  (mapc (lambda (state-mode) (funcall (cdr state-mode) -1)) kel-state-mode-alist)
-  ;(when (secondary-selection-exist-p)
-                                        ; (kel--cancel-second-selection))
-  )
+  (mapc (lambda (state-mode) (funcall (cdr state-mode) -1)) kel-state-mode-alist))
 
 (defun kel--global-enable ()
   "Enable kel globally."
@@ -152,54 +149,13 @@ there's no chance for kel to call an init function."
 " nil "~/.emacs.d/.kel-mc-lists.el"))
   (setq mc/list-file "~/.emacs.d/.kel-mc-lists.el")
   (setq mark-even-if-inactive nil)
-  (kel--init-buffers)
-  (add-hook 'window-state-change-functions #'kel--on-window-state-change)
-  (add-hook 'minibuffer-setup-hook #'kel--minibuffer-setup)
-  ;(add-hook 'pre-command-hook 'kel--highlight-pre-command)
-  ;(add-hook 'post-command-hook 'meow--maybe-toggle-beacon-state)
-  ;(add-hook 'suspend-hook 'kel--on-exit)
-  ;(add-hook 'suspend-resume-hook 'kel--update-cursor)
-  (add-hook 'kill-emacs-hook 'kel--on-exit)
-  (add-hook 'desktop-after-read-hook 'kel--init-buffers)
-
-  ;(meow--enable-shims)
-  ;; meow-esc-mode fix ESC in TUI
-  ;(meow-esc-mode 1)
-  ;; raise Meow keymap priority
-  ;(add-to-ordered-list 'emulation-mode-map-alists
-  ;                     `((meow-motion-mode . ,meow-motion-state-keymap)))
-  ;(add-to-ordered-list 'emulation-mode-map-alists
-  ;                     `((meow-normal-mode . ,meow-normal-state-keymap)))
-  ;(add-to-ordered-list 'emulation-mode-map-alists
-  ;                     `((meow-beacon-mode . ,meow-beacon-state-keymap)))
-  ;(when meow-use-cursor-position-hack
-  ;  (setq redisplay-highlight-region-function #'meow--redisplay-highlight-region-function)
-  ;  (setq redisplay-unhighlight-region-function #'meow--redisplay-unhighlight-region-function))
-  ;(meow--prepare-face)
-                                        ;(advice-add 'enable-theme :after 'kel--enable-theme-advice))
-  )
+  (kel--init-buffers))
 
 (defun kel--global-disable ()
   "Disable Kel globally."
   (setq-default kel-normal-mode nil)
   (setq mc/always-run-for-all nil)
-  (setq mark-even-if-inactive t)
-  (remove-hook 'window-state-change-functions #'kel--on-window-state-change)
-  (remove-hook 'minibuffer-setup-hook #'kel--minibuffer-setup)
-  ;(remove-hook 'pre-command-hook 'kel--highlight-pre-command)
-  ;(remove-hook 'post-command-hook 'meow--maybe-toggle-beacon-state)
-  (remove-hook 'suspend-hook 'kel--on-exit)
-  ;(remove-hook 'suspend-resume-hook 'meow--update-cursor)
-  ;(remove-hook 'kill-emacs-hook 'kel--on-exit)
-  (remove-hook 'desktop-after-read-hook 'kel--init-buffers)
-  ;(meow--disable-shims)
-  ;(meow--remove-modeline-indicator)
-  ;; (when meow-use-cursor-position-hack
-  ;;   (setq redisplay-highlight-region-function meow--backup-redisplay-highlight-region-function)
-  ;;   (setq redisplay-unhighlight-region-function meow--backup-redisplay-unhighlight-region-function))
-  ;(meow-esc-mode -1)
-                                        ;(advice-remove 'enable-theme 'meow--enable-theme-advice))
-  )
+  (setq mark-even-if-inactive t))
 
 
 (provide 'kel-core)

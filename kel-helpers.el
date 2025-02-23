@@ -85,12 +85,12 @@ associated with it. ACTIVEP is a function that returns t if the
 state is active, nil otherwise. CURSORF is a function that
 updates the cursor when the state is entered. For help with
 making a working CURSORF, check the variable
-meow-update-cursor-functions-alist and the utility functions
-meow--set-cursor-type and meow--set-cursor-color."
+kel-update-cursor-functions-alist and the utility functions
+kel--set-cursor-type and kel--set-cursor-color."
   (add-to-list 'kel-state-mode-alist `(,name . ,mode))
   (add-to-list 'kel-replace-state-name-list
                `(,name . ,(upcase (symbol-name name))))
-  ;(add-to-list 'meow-update-cursor-functions-alist
+  ;(add-to-list 'kel-update-cursor-functions-alist
   ;             `(,activep . ,cursorf))
   (when keymap
     (add-to-list 'kel-keymap-alist `(,name . ,keymap))))
@@ -111,7 +111,7 @@ DESCRIPTION and LIGHTER."
 	 (setq-local kel--current-state nil)
        (kel--disable-current-state)
        (setq-local kel--current-state ',(intern name))
-                                        ;(meow-update-display))
+                                        ;(kel-update-display))
        )
      ,form))
 
@@ -120,7 +120,7 @@ DESCRIPTION and LIGHTER."
 (defmacro kel-define-state (name-sym
                              description
                              &rest body)
-  "Define a custom meow state.
+  "Define a custom kel state.
 
 The state will be called NAME-SYM, and have description
 DESCRIPTION. Following these two arguments, pairs of keywords and
@@ -133,26 +133,26 @@ Recognized keywords:
 
 The last argument is an optional lisp form that will be run when the minor
 mode turns on AND off. If you want to hook into only the turn-on event,
-check whether (meow-NAME-SYM-mode) is true.
+check whether (kel-NAME-SYM-mode) is true.
 
 Example usage:
-(meow-define-state mystate
-  \"My meow state\"
+(kel-define-state mystate
+  \"My kel state\"
   :lighter \" [M]\"
   :keymap \\='my-keymap
   (message \"toggled state\"))
 
-Also see meow-register-state, which is used internally by this
+Also see kel-register-state, which is used internally by this
 function, if you want more control over defining your state. This
 is more helpful if you already have a keymap and defined minor
-mode that you only need to integrate with meow.
+mode that you only need to integrate with kel.
 
 This function produces several items:
-1. meow-NAME-mode: a minor mode for the state. This is the main entry point.
-2. meow-NAME-mode-p: a predicate for whether the state is active.
-3. meow-cursor-type-NAME: a variable for the cursor type for the state.
-4. meow--update-cursor-NAME: a function that sets the cursor type to 3.
- and face FACE or \\='meow-unknown cursor if FACE is nil."
+1. kel-NAME-mode: a minor mode for the state. This is the main entry point.
+2. kel-NAME-mode-p: a predicate for whether the state is active.
+3. kel-cursor-type-NAME: a variable for the cursor type for the state.
+4. kel--update-cursor-NAME: a function that sets the cursor type to 3.
+ and face FACE or \\='kel-unknown cursor if FACE is nil."
   (declare (indent 1))
   (let ((name       (symbol-name name-sym))
         (init-value (plist-get body :init-value))
@@ -164,8 +164,8 @@ This function produces several items:
     `(progn
        ,(kel--define-state-active-p name)
        ,(kel--define-state-minor-mode name init-value description keymap form)
-       ;,(meow--define-state-cursor-type name)
-       ;,(meow--define-state-cursor-function name face)
+       ;,(kel--define-state-cursor-type name)
+       ;,(kel--define-state-cursor-function name face)
        (kel-register-state ',(intern name) ',(kel-intern name "-mode")
                             ',(kel-intern name "-mode-p")
                             #',(kel-intern name nil nil
