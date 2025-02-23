@@ -1,4 +1,4 @@
-;;; kel.el --- Kakoune Emulation Layer -*- lexical-binding: t; -*-
+;;; kel-ex.el --- Command for prompt mode -*- lexical-binding: t; -*-
 ;; Author Alec Davis <unlikelytitan at gmail.com>
 ;; Maintainter Alec Davis <unlikelytitan at gmail.com>
 
@@ -28,20 +28,32 @@
 
 ;;; Code:
 
-(add-to-list 'load-path "/home/ki11errabbit/Documents/Programing-Projects/Emacs-Lisp/kel/")
-(add-to-list 'load-path "/home/ki11errabbit/Documents/Programing-Projects/Emacs-Lisp/multiple-cursors.el")
+
+(defvar my-collection '("foo" "fnord" "baz"))
+(defun my-programmable-collection (str pred action)
+  "str: the string being entered
+pred: a filter function
+action: a flag that determines what action does"
+  (let ((coll my-collection))
+    (cond
+     ((eq action nil)
+      (try-completion str coll pred))
+     ((eq action t)
+      (all-completions str coll pred))
+     ((eq action 'lambda)
+      (test-completion str coll pred))
+     ((consp action)
+      (completion-boundaries str coll pred (cdr action)))
+     ((eq action 'metadata)
+      (completion-metadata str coll pred)))))
 
 
-;;; Modules
-
-(require 'kel-keymap)
-(require 'kel-helpers)
-(require 'kel-util)
-(require 'kel-command)
-(require 'kel-core)
-(require 'kel-ex)
+(defun kel-edit (filename)
+  "opens a file for editing, if it is already open, then go to that buffer"
+  (find-file filename))
 
 
 
-(provide 'kel)
-;;; kel.el ends here
+
+(provide 'kel-ex)
+;;; kel-ex.el ends here

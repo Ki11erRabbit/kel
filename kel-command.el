@@ -38,6 +38,7 @@
 (require 'kel-util)
 (require 'kel-hooks)
 (require 'kel-keymap)
+(require 'kel-ex)
 ;(require 'kel-visual)
 (require 'array)
 
@@ -619,9 +620,10 @@
 TODO: make this have tab completion"
   (interactive)
   (catch 'kel-abort-minibuffer
-    (let ((command (read-from-minibuffer ":" nil kel-prompt-minibuffer-state-keymap)))
+    (let ((command (completing-read ":" #'my-programmable-collection)))
       (kel-parse-execute-command command)))
   (kel-prompt-exit))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; STATE TOGGLE
