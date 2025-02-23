@@ -214,6 +214,12 @@
     keymap)
   "Keymap for Kel Prompt state.")
 
+(defvar kel-prompt-minibuffer-state-keymap
+  (let ((keymap (copy-keymap minibuffer-local-map)))
+    (define-key keymap [escape] 'kel-prompt-minibuffer-exit)
+    keymap)
+  "Keymap for Kel Prompt minibuffer state.")
+
 (defvar kel-object-state-keymap
   (let ((keymap (make-keymap)))
     (define-key keymap [escape] 'kel-object-exit)

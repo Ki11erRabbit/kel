@@ -642,7 +642,6 @@ Looks up the state in kel-replace-state-name-list"
 
 
 (defun kel--minibuffer-setup ()
-  (local-set-key (kbd "<escape>") #'kel-minibuffer-quit)
   (setq-local kel-normal-mode nil)
   )
 

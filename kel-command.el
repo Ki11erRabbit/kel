@@ -37,6 +37,7 @@
 (require 'kel-vars)
 (require 'kel-util)
 (require 'kel-hooks)
+(require 'kel-keymap)
 ;(require 'kel-visual)
 (require 'array)
 
@@ -617,8 +618,9 @@
   "reads in a command and executes it
 TODO: make this have tab completion"
   (interactive)
-  (let ((command (read-from-minibuffer ":")))
-    (kel-parse-execute-command command))
+  (catch 'kel-abort-minibuffer
+    (let ((command (read-from-minibuffer ":" nil kel-prompt-minibuffer-state-keymap)))
+      (kel-parse-execute-command command)))
   (kel-prompt-exit))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -770,11 +772,15 @@ TODO: make this have tab completion"
    ((kel-prompt-mode-p)
     (kel--switch-state 'normal))))
 
+(defun kel-prompt-minibuffer-exit ()
+  (interactive)
+  (throw 'kel-abort-minibuffer nil)
+  (abort-recursive-edit))
+
 (defun kel-prompt-mode-start ()
   "enter command mode"
   (interactive)
   (kel--switch-state 'prompt)
-  (message "processing command")
   (kel-process-command))
 
 (provide 'kel-command)
