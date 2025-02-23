@@ -53,6 +53,10 @@
                   "Kel VIEW state minor mode."
                   :keymap kel-view-state-keymap)
 
+(kel-define-state prompt
+                  "Kel PROMPT state minor mode."
+                  :keymap kel-prompt-state-keymap)
+
 
 ; TODO: add other modes
 
@@ -140,6 +144,7 @@ there's no chance for kel to call an init function."
     kel-cycle-backwards
     kel-keep-match-regex
     kel-remove-match-regex
+    kel-process-command
 
         )
 	)

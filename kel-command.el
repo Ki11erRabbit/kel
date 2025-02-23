@@ -47,7 +47,7 @@
   "Move to the left."
   (interactive)
   (kel-deactivate-mark)
-  (message "backward-char %s" (backward-char (if (equal current-prefix-arg nil) 1 current-prefix-arg))))
+  (backward-char (if (equal current-prefix-arg nil) 1 current-prefix-arg)))
 
 (defun kel-select-backward-char ()
   "Move to the left and select."
@@ -610,6 +610,17 @@
   (interactive)
   (kel-move-selection-backwards (if (equal current-prefix-arg nil) 1 current-prefix-arg)))
 
+
+;; Prompt commands
+
+(defun kel-process-command ()
+  "reads in a command and executes it
+TODO: make this have tab completion"
+  (interactive)
+  (let ((command (read-from-minibuffer ":")))
+    (kel-parse-execute-command command))
+  (kel-prompt-exit))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; STATE TOGGLE
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -714,7 +725,6 @@
 (defun kel-goto-exit ()
   "Switch to NORMAL state."
   (interactive)
-  (top-level)
   (kel-goto-selection-disable)
   (cond
    ((kel-goto-mode-p)
@@ -751,6 +761,21 @@
   (interactive)
   (kel-set-view-count (if (equal current-prefix-arg nil) 1 current-prefix-arg))
   (kel--switch-state 'view))
+
+
+(defun kel-prompt-exit ()
+  "Switch to NORMAL state."
+  (interactive)
+  (cond
+   ((kel-prompt-mode-p)
+    (kel--switch-state 'normal))))
+
+(defun kel-prompt-mode-start ()
+  "enter command mode"
+  (interactive)
+  (kel--switch-state 'prompt)
+  (message "processing command")
+  (kel-process-command))
 
 (provide 'kel-command)
 ;;; kel-command.el ends here

@@ -46,6 +46,7 @@
     (define-key keymap (kbd "g") 'kel-goto-mode-start)
     (define-key keymap (kbd "G") 'kel-goto-select-mode-start)
     (define-key keymap (kbd "v") 'kel-view-mode-start)
+    (define-key keymap (kbd ":") 'kel-prompt-mode-start)
     (define-key keymap (kbd "i") 'kel-insert-before)
     (define-key keymap (kbd "a") 'kel-insert-after)
     (define-key keymap (kbd "c") 'kel-insert-yank-and-delete)
@@ -238,6 +239,9 @@
 (defvar kel-keymap-alist
   `((insert . ,kel-insert-state-keymap)
     (normal . ,kel-normal-state-keymap)
+    (goto . ,kel-goto-state-keymap)
+    (view . ,kel-view-state-keymap)
+    (prompt . ,kel-prompt-state-keymap)
     (motion . ,kel-motion-state-keymap))
   "Alist of symbols of state names to keymaps.")
 

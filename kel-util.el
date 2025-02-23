@@ -546,6 +546,12 @@ TODO: ensure that selections are kept"
   (dotimes (i count)
     (mc/cycle-backward)))
 
+;; Prompt Commands
+
+(defun kel-parse-execute-command (command)
+  (message command))
+
+
 ;; Modes
 
 (defvar kel-normal-mode)
