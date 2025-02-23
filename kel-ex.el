@@ -25,16 +25,16 @@
 ;; along with Kel.  If not, see <http://www.gnu.org/licenses/>.
 
 
+(require 'kel-vars)
 
 ;;; Code:
 
 
-(defvar my-collection '("foo" "fnord" "baz"))
 (defun my-programmable-collection (str pred action)
   "str: the string being entered
 pred: a filter function
 action: a flag that determines what action does"
-  (let ((coll my-collection))
+  (let ((coll kel-prompt-commands))
     (cond
      ((eq action nil)
       (try-completion str coll pred))

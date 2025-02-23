@@ -107,6 +107,62 @@ The init-state can be any state, including custom ones."
 (defun kel-get-indent-width ()
   kel--indent-width)
 
+;; TODO: change value to be commands
+(defcustom kel-prompt-commands-alist
+  '(("quit!" . "quit-force")
+    ("quit" . "quit")
+    ("write" . "write")
+    ("edit" . "edit")
+    )
+  "A list of commands for kel for use in prompt mode"
+  :group 'kel
+  :type '(alist :key-type (string :tag "kel prompt command name or alias")
+                :value-type (command :tag "command")))
+
+(defvar kel-prompt-commands
+  '("q"
+    "quit"
+    "q!"
+    "quit!"
+    "w"
+    "write"
+    "e"
+    "edit")
+  "A list of commands and aliases that kel can complete.
+This is for completion but to get the arguments, the command should be looked up to get the command name. Then that should be looked up.")
+
+(defcustom kel-prompt-commands-alias-to-command
+  '(("q" . "quit")
+    ("quit" . "quit")
+    ("q!" . "quit-force")
+    ("quit!" . "quit-force")
+    ("w" . "write")
+    ("write" . "write")
+    ("e" . "edit")
+    ("edit" . "edit")
+    )
+  "A list of commands or aliases to the command they execute"
+  
+  :group 'kel
+  :type '(alist :key-type (string :tag "kel prompt command name or alias")
+                :value-type (string :tag "kel command name")))
+
+
+(defcustom kel-prompt-commands-args
+  '(("quit" . "")
+    ("write" . "?file")
+    ("edit" . "file ?number ?number")
+    )
+  "A list of commands and their arguments with the following format:
+Arguments are space separated and if optional, preappended with a question mark (?) and can use one or more of the following completion types:
+file: a file based on the current directory
+buffer: an open buffer
+number: a number
+"
+  :group 'kel
+  :type '(alist :key-type (string :tag "kel prompt commannd name or alias")
+                :value-type (string :tag "command argument format")))
+
 ;;; Internal variables
 
 (defvar-local kel--current-state 'normal
