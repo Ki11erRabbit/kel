@@ -41,6 +41,7 @@
 (require 'kel-core)
 (require 'kel-ex)
 
+(require 'help-fns+)
 
 
 (provide 'kel)

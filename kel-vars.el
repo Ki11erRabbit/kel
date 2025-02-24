@@ -149,19 +149,25 @@ This is for completion but to get the arguments, the command should be looked up
 
 
 (defcustom kel-prompt-commands-args
-  '(("quit" . "")
-    ("write" . "?file")
-    ("edit" . "file ?number ?number")
+  '(("quit" . '())
+    ("write" . '("?file"))
+    ("edit" . '("file" "?number" "?number"))
     )
   "A list of commands and their arguments with the following format:
-Arguments are space separated and if optional, preappended with a question mark (?) and can use one or more of the following completion types:
+Arguments are a list and if optional, preappended with a question mark (?) and can use one or more of the following completion types:
 file: a file based on the current directory
 buffer: an open buffer
 number: a number
 "
   :group 'kel
   :type '(alist :key-type (string :tag "kel prompt commannd name or alias")
-                :value-type (string :tag "command argument format")))
+                :value-type (list :tag "command argument format")))
+
+
+(defun kel-get-command-args (command)
+  (let* ((command-name (alist-get command kel-prompt-commands-alias-to-command))
+         (args (alist-get command-name kel-prompt-commands-args)))
+         args))
 
 ;;; Internal variables
 
