@@ -1,4 +1,4 @@
-;;; kel-ex.el --- Command for prompt mode -*- lexical-binding: t; -*-
+;;; kel-ex.el --- Command processing for prompt mode -*- lexical-binding: t; -*-
 ;; Author Alec Davis <unlikelytitan at gmail.com>
 ;; Maintainter Alec Davis <unlikelytitan at gmail.com>
 
@@ -24,8 +24,10 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with Kel.  If not, see <http://www.gnu.org/licenses/>.
 
+(require 'subr-x)
 
 (require 'kel-vars)
+
 
 ;;; Code:
 
@@ -34,19 +36,135 @@
   "str: the string being entered
 pred: a filter function
 action: a flag that determines what action does"
-  (let ((coll kel-prompt-commands))
-    (cond
-     ((eq action nil)
-      (try-completion str coll pred))
-     ((eq action t)
-      (all-completions str coll pred))
-     ((eq action 'lambda)
-      (test-completion str coll pred))
-     ((consp action)
-      (completion-boundaries str coll pred (cdr action)))
-     ((eq action 'metadata)
-      (completion-metadata str coll pred)))))
+  (cond
+   ((or (> (length (split-string (string-trim str) " ")) 1) (>= (length (split-string (string-trim-left str) " ")) 2));; There is a command and at least one arg for it
+    (let* ((first-split (split-string (string-trim str) " "))
+           (second-split nil)
+           (split (progn (dolist (item first-split)
+                           (unless (equal item "")
+                             (setq second-split (cons item second-split))))
+                         (reverse second-split)))
+           (command (car split))
+           (temp (message (format "'%s'" command)))
+           (command-args (kel-get-command-args command)))
+      (message "command and at least one arg")
+      (cond
+       ((eq action nil) (kel-args-match command-args (cdr split)))
+       ((eq action t) (let ((current-arg (kel-get-current-arg (cdr split) command-args ))
+                            (arg-type (kel-get-current-arg-type (cdr split) command-args )))
+                        (message "action t")
+                        (message (format "arg-type: %s" arg-type))
+                        (pcase arg-type ; TODO: handle optional argument
+                          (`(,optional . "file") (let ((arg (car (cdr split))))
+                                                   (if (null arg) (directory-files default-directory)
+                                                     (kel-get-file-match arg))))
 
+                          (`(,optional . "number") '("1" "2" "3" "4" "5" "6" "7" "8" "9" "0")) 
+                          (`(,optional . "buffer") (mapcar (function buffer-name) (buffer-list))))))
+       ((eq action 'lambda) (let ((current-arg (kel-get-current-arg (cdr split) command-args))
+                                  (arg-type (kel-get-current-arg-type (cdr split) command-args)))
+                              (message "action: lambda")
+                              (message (format "\tpred: %s" pred))
+                              (message (format "\targ-type: %s" arg-type))
+                              (message (format "\targ: %s" (car (cdr split))))
+                              (pcase arg-type
+                                (`(,optional . "file") (kel-get-file-possible-match (car (cdr split))))
+                                (`(,optional . "number") nil) 
+                                (`(,optional . "buffer") (kel-get-buffer-possible-match (cdr split))))))
+       ((consp action) ; TODO: check to make sure it has the right behaviors
+        (let ((suffix (cdr action)))
+          (message (format "boundaries: %s" suffix))
+          (message (format "boundaries: %s" str))
+          (if (string-equal suffix "")
+              `(boundaries ,(- (length str) (length (car (cdr split)))). 0)
+            `(boundaries 0 . 0)))); TODO: figure out what this should be
+        ; just a simple (index . index)
+       ((eq action 'metadata); TODO: check to make sure it has the right behaviors
+        `(metadata
+          (affixation-function . kel-affixation-function)
+          (group-function . kel-group-function)))
+       )))
+   ((or (eq (length (split-string (string-trim str) " ")) 1) (eq (length (split-string (string-trim str) " ")) 0))
+    (let ((coll kel-prompt-commands))
+      (message "no commands yet")
+       (cond
+        ((eq action nil)
+         (try-completion str coll pred))
+        ((eq action t)
+         (all-completions str coll pred))
+        ((eq action 'lambda)
+         (test-completion str coll pred))
+        ((consp action)
+         (completion-boundaries str coll pred (cdr action)))
+        ((eq action 'metadata)
+         (completion-metadata str coll pred)))))))
+       
+                        
+(defun kel-args-match (current-arg-list command-spec-list)
+  "todo: make this try to finish the completion and not just provide the default values"
+  (if (eq (length current-arg-list) (length command-spec-list))
+      t
+    (let ((pair (kel-get-arg-type (nth (length current-arg-list) command-spec-list))))
+      (pcase pair
+        (`(,optional "file") (directory-files default-directory))
+        (`(,optional "number") '("1" "2" "3" "4" "5" "6" "7" "8" "9" "0"))
+        (`(,optional "buffer") (mapcar (function buffer-name) (buffer-list)))))))
+
+(defun kel-get-current-arg (current-arg-list command-spec-list)
+  "TODO: check to see if each arg matches the spec. If it does, move on. Otherwise, return that arg"
+  (nth 0 command-spec-list))
+
+(defun kel-get-current-arg-type (current-arg-list command-spec-list)
+  (message (format "length: %s" (length current-arg-list)))
+  (message (format "lists args: %s \n commands: %s" current-arg-list command-spec-list))
+  (kel-get-arg-type (nth 0 command-spec-list)))
+
+(defun kel-get-arg-type (command-spec)
+  "converts a completion type to a pair of whether or not it is optional and the name of the completion"
+  (message (format "command-spec: %s" command-spec))
+  (pcase command-spec
+    ("file" (cons nil "file"))
+    ("file?" (cons t "file"))
+    ("number" (cons nil "number"))
+    ("number?" (cons t "number"))
+    ("buffer" (cons nil "buffer"))
+    ("buffer?" (cons t "buffer"))))
+
+(defun kel-get-file-match (current-arg)
+  "TODO: add logic to see if there is a file that matches the name, otherwise return nil"
+  (let ((possibilities nil))
+    (dolist (item (directory-files default-directory))
+      (message (format "trying '%s' and '%s'" current-arg item))
+      (when (or (equal current-arg item) (string-match-p (regexp-quote current-arg) item))
+        (setq possibilities (cons item possibilities))))
+    possibilities))
+
+(defun kel-get-file-possible-match (current-arg)
+  "TODO: add logic to see if there is a file that matches the name, otherwise return nil"
+  (let ((possibilities nil))
+    (dolist (item (directory-files default-directory))
+      (message (format "trying '%s' and '%s'" current-arg item))
+      (when (or (equal current-arg item) (string-match-p (regexp-quote current-arg) item))
+        (setq possibilities (cons item possibilities))))
+    (message (format "file possible-match: %s" possibilities))
+    (when (consp possibilities) t)))
+
+
+(defun kel-get-buffer-possible-match (current-arg)
+  "TODO: add logic to see if there is a buffer that matches the name, otherwise return nil"
+  nil)
+
+
+(defun kel-group-function (completion transform)
+  (if (null transform)
+      nil
+    completion))
+  
+(defun kel-affixation-function (completions)
+  (let ((output nil))
+    (dolist (item completions)
+      (setq output (cons `(,item "" ,item) output)))
+    (reverse output)))
 
 (defun kel-edit (filename)
   "opens a file for editing, if it is already open, then go to that buffer"
