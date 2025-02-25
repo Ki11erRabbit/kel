@@ -51,8 +51,8 @@ action: a flag that determines what action does"
       (message "command and at least one arg")
       (message (format "command and arg: %s" split))
       (cond
-       ((eq action nil) (kel-args-match command-args (cdr split)))
-       ((eq action t) (let ((current-arg (kel-get-current-arg (cdr split) command-args ))
+       ((eq action nil) (progn (message "action nil") (kel-args-match (cdr split) command-args)))
+       ((eq action t) (let ((current-arg (kel-get-current-arg (cdr split) command-args))
                             (arg-type (kel-get-current-arg-type (cdr split) command-args )))
                         (message "action t")
                         (message (format "arg-type: %s" arg-type))
@@ -76,7 +76,7 @@ action: a flag that determines what action does"
           (message (format "boundaries: %s" suffix))
           (message (format "boundaries: %s" str))
           (if (string-equal suffix "")
-              `(boundaries ,(- (length str) (length (car (cdr split)))). ,(length suffix));; TODO: fix this so that it can not duplicate completions
+              `(boundaries ,(- (length str) (length suffix)). ,(length suffix));; TODO: fix this so that it can not duplicate completions
             `(boundaries ,(length str). 0)))); TODO: figure out what this should be
         ; just a simple (index . index)
        ((eq action 'metadata); TODO: check to make sure it has the right behaviors
@@ -104,9 +104,10 @@ action: a flag that determines what action does"
   "todo: make this try to finish the completion and not just provide the default values"
   (if (eq (length current-arg-list) (length command-spec-list))
       t
-    (let ((pair (kel-get-arg-type (nth (length current-arg-list) command-spec-list))))
+    (let ((current-arg (kel-get-current-arg current-arg-list command-spec-list))
+          (pair (kel-get-arg-type (nth 0 command-spec-list))))
       (pcase pair
-        (`(,optional . "file") (directory-files default-directory))
+        (`(,optional . "file") nil); TODO: return longest common substring
         (`(,optional . "number") '("1" "2" "3" "4" "5" "6" "7" "8" "9" "0"))
         (`(,optional . "buffer") (mapcar (function buffer-name) (buffer-list)))))))
 
@@ -163,7 +164,7 @@ action: a flag that determines what action does"
 (defun kel-affixation-function (completions)
   (let ((output nil))
     (dolist (item completions)
-      (setq output (cons `(,item "" ,item) output)))
+      (setq output (cons `(,item "" "") output)))
     (reverse output)))
 
 
@@ -183,6 +184,7 @@ action: a flag that determines what action does"
         (unless skip
           (if (file-directory-p (concat acc item))
               (setq acc (concat acc item "/"))
+            (message "at end")
             (setq skip t))))
       (message (format "directory files acc: %s" acc))
       (directory-files acc))))
