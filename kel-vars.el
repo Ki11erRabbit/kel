@@ -149,9 +149,9 @@ This is for completion but to get the arguments, the command should be looked up
 
 
 (defcustom kel-prompt-commands-args
-  '(("quit" . '())
-    ("write" . '("?file"))
-    ("edit" . '("file" "?number" "?number"))
+  '(("quit" . ())
+    ("write" . ("?file"))
+    ("edit" . ("file" "?number" "?number"))
     )
   "A list of commands and their arguments with the following format:
 Arguments are a list and if optional, preappended with a question mark (?) and can use one or more of the following completion types:
@@ -165,9 +165,11 @@ number: a number
 
 
 (defun kel-get-command-args (command)
-  (let* ((command-name (alist-get command kel-prompt-commands-alias-to-command))
-         (args (alist-get command-name kel-prompt-commands-args)))
-         args))
+  (message (format "command: '%s'" command))
+  (let* ((command-name (alist-get command kel-prompt-commands-alias-to-command nil nil (lambda (x y) (equal x y))))
+         (temp (message (format "command-name: %s" command-name)))
+         (args (alist-get command-name kel-prompt-commands-args nil nil (lambda (x y) (equal x y)))))
+    args))
 
 ;;; Internal variables
 
