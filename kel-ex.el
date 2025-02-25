@@ -41,6 +41,7 @@ action: a flag that determines what action does"
     (let* ((first-split (split-string (string-trim str) " "))
            (second-split nil)
            (split (progn (dolist (item first-split)
+                           (message (format "split item: %s" item))
                            (unless (equal item "")
                              (setq second-split (cons item second-split))))
                          (reverse second-split)))
@@ -48,6 +49,7 @@ action: a flag that determines what action does"
            (temp (message (format "'%s'" command)))
            (command-args (kel-get-command-args command)))
       (message "command and at least one arg")
+      (message (format "command and arg: %s" split))
       (cond
        ((eq action nil) (kel-args-match command-args (cdr split)))
        ((eq action t) (let ((current-arg (kel-get-current-arg (cdr split) command-args ))
@@ -55,9 +57,7 @@ action: a flag that determines what action does"
                         (message "action t")
                         (message (format "arg-type: %s" arg-type))
                         (pcase arg-type ; TODO: handle optional argument
-                          (`(,optional . "file") (let ((arg (car (cdr split))))
-                                                   (if (null arg) (directory-files default-directory)
-                                                     (kel-get-file-match arg))))
+                          (`(,optional . "file") (kel-get-directory-files current-arg))
 
                           (`(,optional . "number") '("1" "2" "3" "4" "5" "6" "7" "8" "9" "0")) 
                           (`(,optional . "buffer") (mapcar (function buffer-name) (buffer-list))))))
@@ -68,7 +68,7 @@ action: a flag that determines what action does"
                               (message (format "\targ-type: %s" arg-type))
                               (message (format "\targ: %s" (car (cdr split))))
                               (pcase arg-type
-                                (`(,optional . "file") (kel-get-file-possible-match (car (cdr split))))
+                                (`(,optional . "file") (kel-get-file-possible-match current-arg))
                                 (`(,optional . "number") nil) 
                                 (`(,optional . "buffer") (kel-get-buffer-possible-match (cdr split))))))
        ((consp action) ; TODO: check to make sure it has the right behaviors
@@ -76,8 +76,8 @@ action: a flag that determines what action does"
           (message (format "boundaries: %s" suffix))
           (message (format "boundaries: %s" str))
           (if (string-equal suffix "")
-              `(boundaries ,(- (length str) (length (car (cdr split)))). 0)
-            `(boundaries 0 . 0)))); TODO: figure out what this should be
+              `(boundaries ,(- (length str) (length (car (cdr split)))). ,(length suffix));; TODO: fix this so that it can not duplicate completions
+            `(boundaries ,(length str). 0)))); TODO: figure out what this should be
         ; just a simple (index . index)
        ((eq action 'metadata); TODO: check to make sure it has the right behaviors
         `(metadata
@@ -106,13 +106,13 @@ action: a flag that determines what action does"
       t
     (let ((pair (kel-get-arg-type (nth (length current-arg-list) command-spec-list))))
       (pcase pair
-        (`(,optional "file") (directory-files default-directory))
-        (`(,optional "number") '("1" "2" "3" "4" "5" "6" "7" "8" "9" "0"))
-        (`(,optional "buffer") (mapcar (function buffer-name) (buffer-list)))))))
+        (`(,optional . "file") (directory-files default-directory))
+        (`(,optional . "number") '("1" "2" "3" "4" "5" "6" "7" "8" "9" "0"))
+        (`(,optional . "buffer") (mapcar (function buffer-name) (buffer-list)))))))
 
 (defun kel-get-current-arg (current-arg-list command-spec-list)
   "TODO: check to see if each arg matches the spec. If it does, move on. Otherwise, return that arg"
-  (nth 0 command-spec-list))
+  (nth 0 current-arg-list))
 
 (defun kel-get-current-arg-type (current-arg-list command-spec-list)
   (message (format "length: %s" (length current-arg-list)))
@@ -133,7 +133,7 @@ action: a flag that determines what action does"
 (defun kel-get-file-match (current-arg)
   "TODO: add logic to see if there is a file that matches the name, otherwise return nil"
   (let ((possibilities nil))
-    (dolist (item (directory-files default-directory))
+    (dolist (item (kel-get-directory-files current-arg))
       (message (format "trying '%s' and '%s'" current-arg item))
       (when (or (equal current-arg item) (string-match-p (regexp-quote current-arg) item))
         (setq possibilities (cons item possibilities))))
@@ -142,7 +142,7 @@ action: a flag that determines what action does"
 (defun kel-get-file-possible-match (current-arg)
   "TODO: add logic to see if there is a file that matches the name, otherwise return nil"
   (let ((possibilities nil))
-    (dolist (item (directory-files default-directory))
+    (dolist (item (kel-get-directory-files current-arg))
       (message (format "trying '%s' and '%s'" current-arg item))
       (when (or (equal current-arg item) (string-match-p (regexp-quote current-arg) item))
         (setq possibilities (cons item possibilities))))
@@ -165,6 +165,30 @@ action: a flag that determines what action does"
     (dolist (item completions)
       (setq output (cons `(,item "" ,item) output)))
     (reverse output)))
+
+
+(defun kel-get-directory-files (&optional dir)
+  "get the files in a directory, if dir is nil or empty string then take dir and remove the non-dir part TODO: catch errors here"
+  (message (format "default-directory: %s" default-directory))
+  (message (format "dir: %s" dir))
+  (if (or (null dir) (equal dir ""))
+      (directory-files default-directory)
+    (let ((split (let ((acc nil)) (dolist (item (split-string dir "/"))
+                                    (unless (equal item "")
+                                      (setq acc (cons item acc))))
+                      (reverse acc)))
+          (acc default-directory)
+          (skip nil))
+      (dolist (item split)
+        (unless skip
+          (if (file-directory-p (concat acc item))
+              (setq acc (concat acc item "/"))
+            (setq skip t))))
+      (message (format "directory files acc: %s" acc))
+      (directory-files acc))))
+
+      
+      
 
 (defun kel-edit (filename)
   "opens a file for editing, if it is already open, then go to that buffer"
