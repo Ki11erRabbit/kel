@@ -46,7 +46,6 @@ action: a flag that determines what action does"
                              (setq second-split (cons item second-split))))
                          (reverse second-split)))
            (command (car split))
-           (temp (message (format "'%s'" command)))
            (command-args (kel-get-command-args command)))
       (message "command and at least one arg")
       (message (format "command and arg: %s" split))
@@ -101,24 +100,38 @@ action: a flag that determines what action does"
        
                         
 (defun kel-args-match (current-arg-list command-spec-list)
-  "todo: make this try to finish the completion and not just provide the default values"
+  "todo: make this try to finish the completion and not just provide nil"
   (if (eq (length current-arg-list) (length command-spec-list))
       t
     (let ((current-arg (kel-get-current-arg current-arg-list command-spec-list))
-          (pair (kel-get-arg-type (nth 0 command-spec-list))))
+          (pair (kel-get-arg-type (nth (kel-get-current-arg-index current-arg-list command-spec-list) command-spec-list))))
       (pcase pair
         (`(,optional . "file") nil); TODO: return longest common substring
-        (`(,optional . "number") '("1" "2" "3" "4" "5" "6" "7" "8" "9" "0"))
-        (`(,optional . "buffer") (mapcar (function buffer-name) (buffer-list)))))))
+        (`(,optional . "number") nil)
+        (`(,optional . "buffer") nil)))))
+
+(defun kel-get-current-arg-index (current-arg-list command-spec-list)
+  "TODO: check to see if each arg matches the spec. If it does, move on. Otherwise, return that arg"
+  (let ((index 0)
+        (is-good t))
+    (while (and (< index (length current-arg-list)) is-good)
+      (let ((pair (kel-get-arg-type (nth index command-spec-list))))
+        (pcase pair
+          (`(,optional . "file") (if (<= (length (kel-get-file-match (nth index current-arg-list))) 1) t (setq is-good nil)))
+          (`(,optional . "number") (if (string-match-p "^-?\\(?:0\\|[1-9][0-9]*\\)$" (nth index current-arg-list)) t (setq is-good nil)))
+          (`(,optional . "buffer") (error "todo")))
+        (setq index (+ index 1))))
+    (- index 1)))
+
 
 (defun kel-get-current-arg (current-arg-list command-spec-list)
   "TODO: check to see if each arg matches the spec. If it does, move on. Otherwise, return that arg"
-  (nth 0 current-arg-list))
+  (nth (kel-get-current-arg-index current-arg-list command-spec-list) current-arg-list))
 
 (defun kel-get-current-arg-type (current-arg-list command-spec-list)
   (message (format "length: %s" (length current-arg-list)))
   (message (format "lists args: %s \n commands: %s" current-arg-list command-spec-list))
-  (kel-get-arg-type (nth 0 command-spec-list)))
+  (kel-get-arg-type (nth (kel-get-current-arg-index current-arg-list command-spec-list) command-spec-list)))
 
 (defun kel-get-arg-type (command-spec)
   "converts a completion type to a pair of whether or not it is optional and the name of the completion"
@@ -136,7 +149,7 @@ action: a flag that determines what action does"
   (let ((possibilities nil))
     (dolist (item (kel-get-directory-files current-arg))
       (message (format "trying '%s' and '%s'" current-arg item))
-      (when (or (equal current-arg item) (string-match-p (regexp-quote current-arg) item))
+      (when (or (equal current-arg item) (and (not (null current-arg)) (string-match-p (regexp-quote current-arg) item)))
         (setq possibilities (cons item possibilities))))
     possibilities))
 
@@ -145,7 +158,7 @@ action: a flag that determines what action does"
   (let ((possibilities nil))
     (dolist (item (kel-get-directory-files current-arg))
       (message (format "trying '%s' and '%s'" current-arg item))
-      (when (or (equal current-arg item) (string-match-p (regexp-quote current-arg) item))
+      (when (or (equal current-arg item) (and (not (null current-arg)) (string-match-p (regexp-quote current-arg) item)))
         (setq possibilities (cons item possibilities))))
     (message (format "file possible-match: %s" possibilities))
     (when (consp possibilities) t)))
