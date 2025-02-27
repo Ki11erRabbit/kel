@@ -37,7 +37,7 @@
 pred: a filter function
 action: a flag that determines what action does"
   (cond
-   ((or (> (length (split-string (string-trim str) " ")) 1) (>= (length (split-string (string-trim-left str) " ")) 2));; There is a command and at least one arg for it
+   ((or (> (length (split-string (string-trim str) " ")) 1) (>= (length (split-string (string-trim-left str) " ")) 2));; There is a command and at least one arg for it TODO: fix split to handle escaped spaces
     (let* ((first-split (split-string (string-trim str) " "))
            (second-split nil)
            (split (progn (dolist (item first-split)
@@ -51,32 +51,37 @@ action: a flag that determines what action does"
       (message (format "command and arg: %s" split))
       (cond
        ((eq action nil) (progn (message "action nil") (kel-args-match (cdr split) command-args)))
-       ((eq action t) (let ((current-arg (kel-get-current-arg (cdr split) command-args))
+       ((eq action t) (progn (message "action t") (let ((current-arg (kel-get-current-arg (cdr split) command-args))
                             (arg-type (kel-get-current-arg-type (cdr split) command-args )))
-                        (message "action t")
+                        
                         (message (format "arg-type: %s" arg-type))
                         (pcase arg-type ; TODO: handle optional argument
-                          (`(,optional . "file") (kel-get-directory-files current-arg))
+                          (`(,optional . "file") (kel-get-file-match current-arg))
 
                           (`(,optional . "number") '("1" "2" "3" "4" "5" "6" "7" "8" "9" "0")) 
-                          (`(,optional . "buffer") (mapcar (function buffer-name) (buffer-list))))))
-       ((eq action 'lambda) (let ((current-arg (kel-get-current-arg (cdr split) command-args))
+                          (`(,optional . "buffer") (mapcar (function buffer-name) (buffer-list)))))))
+       ((eq action 'lambda) (progn (message "action: lambda") (let ((current-arg (kel-get-current-arg (cdr split) command-args))
                                   (arg-type (kel-get-current-arg-type (cdr split) command-args)))
-                              (message "action: lambda")
+                              
                               (message (format "\tpred: %s" pred))
                               (message (format "\targ-type: %s" arg-type))
                               (message (format "\targ: %s" (car (cdr split))))
                               (pcase arg-type
                                 (`(,optional . "file") (kel-get-file-possible-match current-arg))
                                 (`(,optional . "number") nil) 
-                                (`(,optional . "buffer") (kel-get-buffer-possible-match (cdr split))))))
+                                (`(,optional . "buffer") (kel-get-buffer-possible-match (cdr split)))))))
        ((consp action) ; TODO: check to make sure it has the right behaviors
-        (let ((suffix (cdr action)))
+        (let ((suffix (cdr action))
+              (current-arg (kel-get-current-arg (cdr split) command-args))
+              (arg-type (kel-get-current-arg-type (cdr split) command-args )))
           (message (format "boundaries: %s" suffix))
           (message (format "boundaries: %s" str))
-          (if (string-equal suffix "")
-              `(boundaries ,(- (length str) (length suffix)). ,(length suffix));; TODO: fix this so that it can not duplicate completions
-            `(boundaries ,(length str). 0)))); TODO: figure out what this should be
+          (pcase arg-type
+            (`(,optional . "file") `(boundaries ,(kel-calculate-file-start-boundry str current-arg) . ,(length suffix)))
+            (_ (if (string-equal suffix "")
+              `(boundaries ,(- (length str) (length (car (cdr split)))) . ,(length suffix));; TODO: fix this so that it can not duplicate completions
+            `(boundaries ,(length str). 0))))
+          )); TODO: figure out what this should be
         ; just a simple (index . index)
        ((eq action 'metadata); TODO: check to make sure it has the right behaviors
         `(metadata
@@ -107,7 +112,7 @@ action: a flag that determines what action does"
           (pair (kel-get-arg-type (nth (kel-get-current-arg-index current-arg-list command-spec-list) command-spec-list))))
       (pcase pair
         (`(,optional . "file") nil); TODO: return longest common substring
-        (`(,optional . "number") nil)
+        (`(,optional . "number") (if (string-match-p "^-?\\(?:0\\|[1-9][0-9]*\\)$" (nth index current-arg-list)) t nil))
         (`(,optional . "buffer") nil)))))
 
 (defun kel-get-current-arg-index (current-arg-list command-spec-list)
@@ -146,22 +151,21 @@ action: a flag that determines what action does"
 
 (defun kel-get-file-match (current-arg)
   "TODO: add logic to see if there is a file that matches the name, otherwise return nil"
-  (let ((possibilities nil))
-    (dolist (item (kel-get-directory-files current-arg))
-      (message (format "trying '%s' and '%s'" current-arg item))
-      (when (or (equal current-arg item) (and (not (null current-arg)) (string-match-p (regexp-quote current-arg) item)))
-        (setq possibilities (cons item possibilities))))
-    possibilities))
+  (let* ((possibilities nil)
+         (pair (kel-get-directory-files current-arg))
+         (rest (car pair))
+         (files (cdr pair)))
+    (dolist (item files)
+      (message (format "trying '%s' and '%s'" rest item))
+      (if (null rest)
+          (progn (message "rest is nil") (setq possibilities (cons item possibilities)))
+        (when (or (equal rest item) (and (not (null rest)) (string-match-p (regexp-quote rest) item)))
+          (setq possibilities (cons item possibilities)))))
+    (progn (message (format "possiblities: %s" possibilities)) possibilities)))
 
 (defun kel-get-file-possible-match (current-arg)
   "TODO: add logic to see if there is a file that matches the name, otherwise return nil"
-  (let ((possibilities nil))
-    (dolist (item (kel-get-directory-files current-arg))
-      (message (format "trying '%s' and '%s'" current-arg item))
-      (when (or (equal current-arg item) (and (not (null current-arg)) (string-match-p (regexp-quote current-arg) item)))
-        (setq possibilities (cons item possibilities))))
-    (message (format "file possible-match: %s" possibilities))
-    (when (consp possibilities) t)))
+  (when (consp (kel-get-file-match current-arg)) t))
 
 
 (defun kel-get-buffer-possible-match (current-arg)
@@ -182,27 +186,51 @@ action: a flag that determines what action does"
 
 
 (defun kel-get-directory-files (&optional dir)
-  "get the files in a directory, if dir is nil or empty string then take dir and remove the non-dir part TODO: catch errors here"
+  "get a pair that is the remaining portion of the dir string and the files in that directory. The remaining portion is the first non-successful directory match."
   (message (format "default-directory: %s" default-directory))
   (message (format "dir: %s" dir))
-  (if (or (null dir) (equal dir ""))
-      (directory-files default-directory)
-    (let ((split (let ((acc nil)) (dolist (item (split-string dir "/"))
+  (cond
+   ((or (null dir) (equal dir "")) (cons nil (directory-files default-directory)))
+   ((string-match-p (regexp-quote "..") dir) (let ((split (let ((acc nil)) (dolist (item (split-string dir "/"))
                                     (unless (equal item "")
                                       (setq acc (cons item acc))))
-                      (reverse acc)))
-          (acc default-directory)
-          (skip nil))
-      (dolist (item split)
-        (unless skip
-          (if (file-directory-p (concat acc item))
-              (setq acc (concat acc item "/"))
-            (message "at end")
-            (setq skip t))))
-      (message (format "directory files acc: %s" acc))
-      (directory-files acc))))
+                        (reverse acc)))
+            (acc default-directory))
+        (while (and (file-directory-p (concat acc (car split) "/")) (consp split))
+          (setq acc (concat acc (car split) "/"))
+          (setq split (cdr split)))
+        (cons (car split) (directory-files acc))))
+   ((kel-is-at-root dir) (let ((split (let ((acc nil)) (dolist (item (split-string dir "/"))
+                                    (unless (equal item "")
+                                      (setq acc (cons item acc))))
+                        (reverse acc)))
+            (acc "/"))
+        (while (and (file-directory-p (concat acc (car split) "/")) (consp split))
+          (setq acc (concat acc (car split) "/"))
+          (setq split (cdr split)))
+        (cons (car split) (directory-files acc))))
+   (t (let ((split (let ((acc nil)) (dolist (item (split-string dir "/"))
+                                    (unless (equal item "")
+                                      (setq acc (cons item acc))))
+                        (reverse acc)))
+            (acc default-directory))
+        (while (and (file-directory-p (concat acc (car split) "/")) (consp split))
+          (setq acc (concat acc (car split) "/"))
+          (setq split (cdr split)))
+        (cons (car split) (directory-files acc))))))
 
+(defun kel-is-at-root (dir)
+  (cond
+   ((eq system-type 'windows-nt) (string-match-p "^\\`[a-zA-Z]:[/\\]\\'.*" dir))
+   (t (string-match-p (regexp-quote "/") dir))))
       
+(defun kel-calculate-file-start-boundry (str dir)
+  "Gets the start boundary for various types of directories"
+  (cond
+   ((or (null dir) (equal dir "")) (length str))
+   ((string-match-p (regexp-quote "../") dir) (- (length str) (- (length dir) 3)))
+   ((kel-is-at-root dir) (- (length str) (- (length dir) 1))); TODO: make this work with windows
+   (t (- (length str) (length dir)))))
       
 
 (defun kel-edit (filename)
