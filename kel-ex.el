@@ -28,6 +28,7 @@
 (require 'seq)
 
 (require 'kel-vars)
+(require 'kel-util)
 
 
 ;;; Code:
@@ -38,8 +39,8 @@
 pred: a filter function
 action: a flag that determines what action does"
   (cond
-   ((or (> (length (split-string (string-trim str) " ")) 1) (>= (length (split-string (string-trim-left str) " ")) 2));; There is a command and at least one arg for it TODO: fix split to handle escaped spaces
-    (let* ((first-split (split-string (string-trim str) " "))
+   ((or (> (length (kel-split-string (string-trim str))) 1) (>= (length (kel-split-string (string-trim-left str))) 2));; There is a command and at least one arg for it TODO: fix split to handle escaped spaces
+    (let* ((first-split (kel-split-string (string-trim str)))
            (second-split nil)
            (split (progn (dolist (item first-split)
                            (message (format "split item: %s" item))
@@ -152,11 +153,11 @@ action: a flag that determines what action does"
   (message (format "command-spec: %s" command-spec))
   (pcase command-spec
     ("file" (cons nil "file"))
-    ("file?" (cons t "file"))
+    ("?file" (cons t "file"))
     ("number" (cons nil "number"))
-    ("number?" (cons t "number"))
+    ("?number" (cons t "number"))
     ("buffer" (cons nil "buffer"))
-    ("buffer?" (cons t "buffer"))))
+    ("?buffer" (cons t "buffer"))))
 
 (defun kel-get-file-match (current-arg)
   "Get files from the current arg that match the first non-file suffix.

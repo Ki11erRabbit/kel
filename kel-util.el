@@ -654,5 +654,46 @@ Looks up the state in kel-replace-state-name-list"
       (with-current-buffer buf
         (kel--enable)))))
 
+
+(defun kel-split-string (str)
+  "splits a string on non-escaped whitespace and preserves quoting"
+  (let ((escaped nil)
+        (stack nil)
+        (output nil)
+        (start-index 0))
+    (dotimes (i (length str))
+      (message (substring str (if (< (- i 1) 0) 0 (- i 1)) i))
+      (pcase (substring str (if (< (- i 1) 0) 0 (- i 1)) i)
+        (" " (progn
+               (when (and (not escaped) (not (eq i start-index)))
+                 (setq output (cons (substring str start-index (- i 1)) output))
+                 (setq start-index (+ i 1)))
+               (when (eq i start-index)
+                 (setq start-index (+ i 1)))))
+        ("'" (progn
+               (when (and (consp stack) (equal (car stack) "'"))
+                 (setq output (cons (substring str start-index i) output))
+                 (setq start-index (+ i 1)))
+               (when (null stack)
+                 (setq start-index i)
+                 (setq stack (cons "'" stack)))))
+        ("\"" (progn
+               (when (and (consp stack) (equal (car stack) "\""))
+                 (setq output (cons (substring str start-index i) output))
+                 (setq start-index (+ i 1)))
+               (when (null stack)
+                 (setq start-index i)
+                 (setq stack (cons "\"" stack)))))
+        (_ nil)))
+    (setq output (cons (substring str start-index (length str)) output))
+    (message (format "kel-split-string: %s" output))
+    (reverse output)))
+               
+
+      
+        
+   
+
+
 (provide 'kel-util)
 ;;; kel-util.el ends here
