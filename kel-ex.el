@@ -25,6 +25,7 @@
 ;; along with Kel.  If not, see <http://www.gnu.org/licenses/>.
 
 (require 'subr-x)
+(require 'seq)
 
 (require 'kel-vars)
 
@@ -56,8 +57,8 @@ action: a flag that determines what action does"
                         
                         (message (format "arg-type: %s" arg-type))
                         (pcase arg-type ; TODO: handle optional argument
-                          (`(,optional . "file") (kel-get-file-match current-arg))
-
+                          (`(,optional . "file") (let ((triple (kel-get-file-match current-arg)))
+                                                   (car (cdr (cdr triple)))))
                           (`(,optional . "number") '("1" "2" "3" "4" "5" "6" "7" "8" "9" "0")) 
                           (`(,optional . "buffer") (mapcar (function buffer-name) (buffer-list)))))))
        ((eq action 'lambda) (progn (message "action: lambda") (let ((current-arg (kel-get-current-arg (cdr split) command-args))
@@ -79,7 +80,7 @@ action: a flag that determines what action does"
           (pcase arg-type
             (`(,optional . "file") `(boundaries ,(kel-calculate-file-start-boundry str current-arg) . ,(length suffix)))
             (_ (if (string-equal suffix "")
-              `(boundaries ,(- (length str) (length (car (cdr split)))) . ,(length suffix));; TODO: fix this so that it can not duplicate completions
+              `(boundaries ,(- (length str) (length current-arg)) . ,(length suffix));; TODO: fix this so that it can handle a successful completion
             `(boundaries ,(length str). 0))))
           )); TODO: figure out what this should be
         ; just a simple (index . index)
@@ -122,11 +123,19 @@ action: a flag that determines what action does"
     (while (and (< index (length current-arg-list)) is-good)
       (let ((pair (kel-get-arg-type (nth index command-spec-list))))
         (pcase pair
-          (`(,optional . "file") (if (<= (length (kel-get-file-match (nth index current-arg-list))) 1) t (setq is-good nil)))
-          (`(,optional . "number") (if (string-match-p "^-?\\(?:0\\|[1-9][0-9]*\\)$" (nth index current-arg-list)) t (setq is-good nil)))
+          (`(,optional . "file") (let* ((file-triple (kel-get-file-match (nth index current-arg-list)))
+                                        (prefix (car file-triple))
+                                        (rest (car (cdr file-triple)))
+                                        (files (car (cdr (cdr file-triple))))
+                                        (reduce (seq-reduce (lambda (acc x) (or acc x)) (mapcar (lambda (file) (and (file-exists-p (concat prefix file)) (equal rest file))) files) nil)))
+                                   (unless reduce
+                                     (setq is-good nil)
+                                     (setq index (- index 1)))))
+          (`(,optional . "number") (if (string-match-p "^-?\\(?:0\\|[1-9][0-9]*\\)$" (nth index current-arg-list)) t (setq is-good nil)(setq index (- index 1))))
           (`(,optional . "buffer") (error "todo")))
         (setq index (+ index 1))))
-    (- index 1)))
+    (message (format "arg-index: %s" index))
+    index))
 
 
 (defun kel-get-current-arg (current-arg-list command-spec-list)
@@ -150,22 +159,28 @@ action: a flag that determines what action does"
     ("buffer?" (cons t "buffer"))))
 
 (defun kel-get-file-match (current-arg)
-  "TODO: add logic to see if there is a file that matches the name, otherwise return nil"
+  "Get files from the current arg that match the first non-file suffix.
+Returns a list of the directory prefix, the rest of the current-arg, and the files in that directory."
   (let* ((possibilities nil)
-         (pair (kel-get-directory-files current-arg))
-         (rest (car pair))
-         (files (cdr pair)))
+         (triple (kel-get-directory-files current-arg))
+         (rest (car triple))
+         (prefix (car (cdr triple)))
+         (files (car (cdr (cdr triple)))))
     (dolist (item files)
       (message (format "trying '%s' and '%s'" rest item))
       (if (null rest)
           (progn (message "rest is nil") (setq possibilities (cons item possibilities)))
         (when (or (equal rest item) (and (not (null rest)) (string-match-p (regexp-quote rest) item)))
           (setq possibilities (cons item possibilities)))))
-    (progn (message (format "possiblities: %s" possibilities)) possibilities)))
+    (progn (message (format "possiblities: %s" possibilities)) `(,prefix ,rest ,possibilities))))
 
 (defun kel-get-file-possible-match (current-arg)
-  "TODO: add logic to see if there is a file that matches the name, otherwise return nil"
-  (when (consp (kel-get-file-match current-arg)) t))
+  "If the result of kel-get-file-match has any files that match the rest of the current arg, return t, otherwise return nil"
+  (let* ((triple (kel-get-file-match current-arg))
+         (rest (car (cdr triple)))
+         (files (car (cdr (cdr triple))))
+         (reduce (seq-reduce (lambda (acc file) (or acc (string-match-p (regexp-quote rest) file))) files nil)))
+    (when reduce t)))
 
 
 (defun kel-get-buffer-possible-match (current-arg)
@@ -199,7 +214,7 @@ action: a flag that determines what action does"
         (while (and (file-directory-p (concat acc (car split) "/")) (consp split))
           (setq acc (concat acc (car split) "/"))
           (setq split (cdr split)))
-        (cons (car split) (directory-files acc))))
+        `( ,(car split) ,acc ,(directory-files acc))))
    ((kel-is-at-root dir) (let ((split (let ((acc nil)) (dolist (item (split-string dir "/"))
                                     (unless (equal item "")
                                       (setq acc (cons item acc))))
@@ -208,7 +223,7 @@ action: a flag that determines what action does"
         (while (and (file-directory-p (concat acc (car split) "/")) (consp split))
           (setq acc (concat acc (car split) "/"))
           (setq split (cdr split)))
-        (cons (car split) (directory-files acc))))
+        `(,(car split) ,acc ,(directory-files acc))))
    (t (let ((split (let ((acc nil)) (dolist (item (split-string dir "/"))
                                     (unless (equal item "")
                                       (setq acc (cons item acc))))
@@ -217,7 +232,7 @@ action: a flag that determines what action does"
         (while (and (file-directory-p (concat acc (car split) "/")) (consp split))
           (setq acc (concat acc (car split) "/"))
           (setq split (cdr split)))
-        (cons (car split) (directory-files acc))))))
+        `(,(car split) ,acc ,(directory-files acc))))))
 
 (defun kel-is-at-root (dir)
   (cond
