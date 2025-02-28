@@ -71,7 +71,7 @@ action: a flag that determines what action does"
                               (pcase arg-type
                                 (`(,optional . "file") (kel-get-file-possible-match current-arg))
                                 (`(,optional . "number") nil) 
-                                (`(,optional . "buffer") (kel-get-buffer-possible-match (cdr split)))))))
+                                (`(,optional . "buffer") (kel-get-buffer-possible-match curren-arg))))))
        ((consp action) ; TODO: check to make sure it has the right behaviors
         (let ((suffix (cdr action))
               (current-arg (kel-get-current-arg (cdr split) command-args))
@@ -122,6 +122,7 @@ action: a flag that determines what action does"
   (let ((index 0)
         (is-good t))
     (while (and (< index (length current-arg-list)) is-good)
+      (message "kel-get-current-arg-index")
       (let ((pair (kel-get-arg-type (nth index command-spec-list))))
         (pcase pair
           (`(,optional . "file") (let* ((file-triple (kel-get-file-match (nth index current-arg-list)))
@@ -132,11 +133,11 @@ action: a flag that determines what action does"
                                    (unless reduce
                                      (setq is-good nil)
                                      (setq index (- index 1)))))
-          (`(,optional . "number") (if (string-match-p "^-?\\(?:0\\|[1-9][0-9]*\\)$" (nth index current-arg-list)) t (setq is-good nil)(setq index (- index 1))))
-          (`(,optional . "buffer") (error "todo")))
-        (setq index (+ index 1))))
+          (`(,optional . "number") (if (string-match-p "^-?\\(?:0\\|[1-9][0-9]*\\)$" (nth index current-arg-list)) t (setq is-good nil) (setq index (- index 1))))
+          (`(,optional . "buffer") (if (get-buffer (nth index current-arg-list) t (setq is-good nil) (setq index (- index 1))))))
+        (setq index (+ index 1)))
     (message (format "arg-index: %s" index))
-    index))
+    index)))
 
 
 (defun kel-get-current-arg (current-arg-list command-spec-list)
@@ -185,8 +186,9 @@ Returns a list of the directory prefix, the rest of the current-arg, and the fil
 
 
 (defun kel-get-buffer-possible-match (current-arg)
-  "TODO: add logic to see if there is a buffer that matches the name, otherwise return nil"
-  nil)
+  "see if there is a buffer that matches the name, otherwise return nil"
+  (let ((buffers (mapcar (function buffer-name) (buffer-list))))
+    (seq-reduce (lambda (acc buf) (if (string-match-p (regexp-quote current-arg) buf) buf (cons buf acc) acc)) buffers nil)))
 
 
 (defun kel-group-function (completion transform)
