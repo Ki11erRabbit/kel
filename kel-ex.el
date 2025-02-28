@@ -71,7 +71,7 @@ action: a flag that determines what action does"
                               (pcase arg-type
                                 (`(,optional . "file") (kel-get-file-possible-match current-arg))
                                 (`(,optional . "number") nil) 
-                                (`(,optional . "buffer") (kel-get-buffer-possible-match curren-arg))))))
+                                (`(,optional . "buffer") (kel-get-buffer-possible-match current-arg))))))
        ((consp action) ; TODO: check to make sure it has the right behaviors
         (let ((suffix (cdr action))
               (current-arg (kel-get-current-arg (cdr split) command-args))
@@ -111,10 +111,10 @@ action: a flag that determines what action does"
   (if (eq (length current-arg-list) (length command-spec-list))
       t
     (let ((current-arg (kel-get-current-arg current-arg-list command-spec-list))
-          (pair (kel-get-arg-type (nth (kel-get-current-arg-index current-arg-list command-spec-list) command-spec-list))))
+          (pair (kel-get-current-arg-type current-arg-list command-spec-list)))
       (pcase pair
         (`(,optional . "file") nil); TODO: return longest common substring
-        (`(,optional . "number") (if (string-match-p "^-?\\(?:0\\|[1-9][0-9]*\\)$" (nth index current-arg-list)) t nil))
+        (`(,optional . "number") (if (string-match-p "^-?\\(?:0\\|[1-9][0-9]*\\)$" current-arg) t nil))
         (`(,optional . "buffer") nil)))))
 
 (defun kel-get-current-arg-index (current-arg-list command-spec-list)
@@ -123,6 +123,7 @@ action: a flag that determines what action does"
         (is-good t))
     (while (and (< index (length current-arg-list)) is-good)
       (message "kel-get-current-arg-index")
+      (message (format "index: %s" index))
       (let ((pair (kel-get-arg-type (nth index command-spec-list))))
         (pcase pair
           (`(,optional . "file") (let* ((file-triple (kel-get-file-match (nth index current-arg-list)))
@@ -131,13 +132,14 @@ action: a flag that determines what action does"
                                         (files (car (cdr (cdr file-triple))))
                                         (reduce (seq-reduce (lambda (acc x) (or acc x)) (mapcar (lambda (file) (and (file-exists-p (concat prefix file)) (equal rest file))) files) nil)))
                                    (unless reduce
+                                     (message "reduce is empty")
                                      (setq is-good nil)
                                      (setq index (- index 1)))))
           (`(,optional . "number") (if (string-match-p "^-?\\(?:0\\|[1-9][0-9]*\\)$" (nth index current-arg-list)) t (setq is-good nil) (setq index (- index 1))))
           (`(,optional . "buffer") (if (get-buffer (nth index current-arg-list) t (setq is-good nil) (setq index (- index 1))))))
-        (setq index (+ index 1)))
+        (setq index (+ index 1))))
     (message (format "arg-index: %s" index))
-    index)))
+    index))
 
 
 (defun kel-get-current-arg (current-arg-list command-spec-list)
@@ -217,7 +219,7 @@ Returns a list of the directory prefix, the rest of the current-arg, and the fil
         (while (and (file-directory-p (concat acc (car split) "/")) (consp split))
           (setq acc (concat acc (car split) "/"))
           (setq split (cdr split)))
-        `( ,(car split) ,acc ,(directory-files acc))))
+        `( ,(if (null (car split)) "" (car split)) ,acc ,(directory-files acc))))
    ((kel-is-at-root dir) (let ((split (let ((acc nil)) (dolist (item (split-string dir "/"))
                                     (unless (equal item "")
                                       (setq acc (cons item acc))))
@@ -226,7 +228,7 @@ Returns a list of the directory prefix, the rest of the current-arg, and the fil
         (while (and (file-directory-p (concat acc (car split) "/")) (consp split))
           (setq acc (concat acc (car split) "/"))
           (setq split (cdr split)))
-        `(,(car split) ,acc ,(directory-files acc))))
+        `(,(if (null (car split)) "" (car split)) ,acc ,(directory-files acc))))
    (t (let ((split (let ((acc nil)) (dolist (item (split-string dir "/"))
                                     (unless (equal item "")
                                       (setq acc (cons item acc))))
@@ -235,7 +237,7 @@ Returns a list of the directory prefix, the rest of the current-arg, and the fil
         (while (and (file-directory-p (concat acc (car split) "/")) (consp split))
           (setq acc (concat acc (car split) "/"))
           (setq split (cdr split)))
-        `(,(car split) ,acc ,(directory-files acc))))))
+        `(,(if (null (car split)) "" (car split)) ,acc ,(directory-files acc))))))
 
 (defun kel-is-at-root (dir)
   (cond
