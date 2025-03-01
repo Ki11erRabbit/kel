@@ -38,16 +38,10 @@
   "str: the string being entered
 pred: a filter function
 action: a flag that determines what action does"
+  (let ((split (kel-split-string (string-trim str))))
   (cond
-   ((or (> (length (kel-split-string (string-trim str))) 1) (>= (length (kel-split-string (string-trim-left str))) 2));; There is a command and at least one arg for it TODO: fix split to handle escaped spaces
-    (let* ((first-split (kel-split-string (string-trim str)))
-           (second-split nil)
-           (split (progn (dolist (item first-split)
-                           (message (format "split item: %s" item))
-                           (unless (equal item "")
-                             (setq second-split (cons item second-split))))
-                         (reverse second-split)))
-           (command (car split))
+   ((member (car split) kel-prompt-commands);; There is a command and at least one arg for it TODO: fix split to handle escaped spaces
+    (let* ((command (car split))
            (command-args (kel-get-command-args command)))
       (message "command and at least one arg")
       (message (format "command and arg: %s" split))
@@ -90,7 +84,7 @@ action: a flag that determines what action does"
           (affixation-function . kel-affixation-function)
           (group-function . kel-group-function)))
        )))
-   ((or (eq (length (split-string (string-trim str) " ")) 1) (eq (length (split-string (string-trim str) " ")) 0))
+   (t
     (let ((coll kel-prompt-commands))
       (message "no commands yet")
        (cond
@@ -103,7 +97,7 @@ action: a flag that determines what action does"
         ((consp action)
          (completion-boundaries str coll pred (cdr action)))
         ((eq action 'metadata)
-         (completion-metadata str coll pred)))))))
+         (completion-metadata str coll pred))))))))
        
                         
 (defun kel-args-match (current-arg-list command-spec-list)
@@ -150,17 +144,6 @@ action: a flag that determines what action does"
   (message (format "length: %s" (length current-arg-list)))
   (message (format "lists args: %s \n commands: %s" current-arg-list command-spec-list))
   (kel-get-arg-type (nth (kel-get-current-arg-index current-arg-list command-spec-list) command-spec-list)))
-
-(defun kel-get-arg-type (command-spec)
-  "converts a completion type to a pair of whether or not it is optional and the name of the completion"
-  (message (format "command-spec: %s" command-spec))
-  (pcase command-spec
-    ("file" (cons nil "file"))
-    ("?file" (cons t "file"))
-    ("number" (cons nil "number"))
-    ("?number" (cons t "number"))
-    ("buffer" (cons nil "buffer"))
-    ("?buffer" (cons t "buffer"))))
 
 (defun kel-get-file-match (current-arg)
   "Get files from the current arg that match the first non-file suffix.
@@ -210,7 +193,7 @@ Returns a list of the directory prefix, the rest of the current-arg, and the fil
   (message (format "default-directory: %s" default-directory))
   (message (format "dir: %s" dir))
   (cond
-   ((or (null dir) (equal dir "")) (cons nil (directory-files default-directory)))
+   ((or (null dir) (equal dir "")) `( "" ,default-directory ,(directory-files default-directory)))
    ((string-match-p (regexp-quote "..") dir) (let ((split (let ((acc nil)) (dolist (item (split-string dir "/"))
                                     (unless (equal item "")
                                       (setq acc (cons item acc))))
@@ -253,9 +236,7 @@ Returns a list of the directory prefix, the rest of the current-arg, and the fil
    (t (- (length str) (length dir)))))
       
 
-(defun kel-edit (filename)
-  "opens a file for editing, if it is already open, then go to that buffer"
-  (find-file filename))
+
 
 
 

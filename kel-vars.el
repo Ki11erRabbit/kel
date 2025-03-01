@@ -109,10 +109,10 @@ The init-state can be any state, including custom ones."
 
 ;; TODO: change value to be commands
 (defcustom kel-prompt-commands-alist
-  '(("quit!" . "quit-force")
-    ("quit" . "quit")
-    ("write" . "write")
-    ("edit" . "edit")
+  `(("quit-force" . ,(intern "kel-quit-force"))
+    ("quit" . ,(intern "kel-quit"))
+    ("write" . ,(intern "kel-write"))
+    ("edit" . ,(intern "kel-edit"))
     )
   "A list of commands for kel for use in prompt mode"
   :group 'kel
@@ -150,6 +150,7 @@ This is for completion but to get the arguments, the command should be looked up
 
 (defcustom kel-prompt-commands-args
   '(("quit" . ())
+    ("quit-force" . ())
     ("write" . ("?file"))
     ("edit" . ("file" "?number" "?number"))
     )
@@ -165,11 +166,14 @@ number: a number
 
 
 (defun kel-get-command-args (command)
-  (message (format "command: '%s'" command))
   (let* ((command-name (alist-get command kel-prompt-commands-alias-to-command nil nil (lambda (x y) (equal x y))))
-         (temp (message (format "command-name: %s" command-name)))
          (args (alist-get command-name kel-prompt-commands-args nil nil (lambda (x y) (equal x y)))))
     args))
+
+(defun kel-get-command (command)
+  (let* ((command-name (alist-get command kel-prompt-commands-alias-to-command nil nil (lambda (x y) (equal x y))))
+         (code (alist-get command-name kel-prompt-commands-alist nil nil (lambda (x y) (equal x y)))))
+    code))
 
 ;;; Internal variables
 

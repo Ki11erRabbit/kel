@@ -549,7 +549,19 @@ TODO: ensure that selections are kept"
 ;; Prompt Commands
 
 (defun kel-parse-execute-command (command)
-  (message command))
+  (let* ((split (kel-split-string command))
+         (command (car split))
+         (args (cdr split))
+         (command-spec (kel-get-command-args command))
+         (input-args nil))
+    (dotimes (i (length args))
+      (let* ((spec (kel-get-arg-type (nth i command-spec)))
+             (type (cdr spec)))
+        (pcase type
+          ("file" (setq input-args (cons (nth i args) input-args)))
+          ("number" (setq input-args (cons (string-to-number (nth i args)) input-args)))
+          ("buffer" (setq input-args (cons (nth i args) input-args))))))
+    (apply (symbol-function (kel-get-command command)) (reverse input-args))))
 
 
 ;; Modes
@@ -655,6 +667,17 @@ Looks up the state in kel-replace-state-name-list"
         (kel--enable)))))
 
 
+(defun kel-get-arg-type (command-spec)
+  "converts a completion type to a pair of whether or not it is optional and the name of the completion"
+  (pcase command-spec
+    ("file" (cons nil "file"))
+    ("?file" (cons t "file"))
+    ("number" (cons nil "number"))
+    ("?number" (cons t "number"))
+    ("buffer" (cons nil "buffer"))
+    ("?buffer" (cons t "buffer"))))
+
+
 (defun kel-split-string (str)
   "splits a string on non-escaped whitespace and preserves quoting"
   (let ((output nil)
@@ -698,7 +721,13 @@ Looks up the state in kel-replace-state-name-list"
     (reverse output)))
   
                
-
+(defun kel-window-delete ()
+  "Delete the current window or tab."
+  (let ((p (window-parent)))
+    (if (and (bound-and-true-p tab-bar-mode)
+             (null p))
+        (tab-close)
+      (delete-window))))
       
         
    

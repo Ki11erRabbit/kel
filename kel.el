@@ -42,6 +42,7 @@
 (require 'kel-command)
 (require 'kel-core)
 (require 'kel-ex)
+(require 'kel-ex-commands)
 
 ;(require 'help-fns+)
 
